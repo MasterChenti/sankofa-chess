@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        id: install
+        run: |
+          mkdir -p ci-logs
+          npm install --no-audit --no-fund 2>&1 | tee ci-logs/install.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint 2>&1 | tee ci-logs/lint.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Type check
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck 2>&1 | tee ci-logs/typecheck.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Unit tests
+        id: unit
+        continue-on-error: true
+        run: npm test 2>&1 | tee ci-logs/unit.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Seed is up to date
+        id: seed
+        continue-on-error: true
+        run: |
+          npm run db:seed:generate
+          git diff --exit-code supabase/seed.sql supabase/setup.sql 2>&1 | tee ci-logs/seed.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Start local Supabase (migrations + seed)
+        id: supabase
+        continue-on-error: true
+        run: |
+          (npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta || npx supabase start) 2>&1 | tee ci-logs/supabase.log
+          npx supabase status -o env > supabase.env 2>> ci-logs/supabase.log
+          sed -E 's/(KEY|SECRET)=.*/\1=<redacted>/' supabase.env >> ci-logs/supabase.log
+          set -a; . ./supabase.env; set +a
+          ANON="${ANON_KEY:-$PUBLISHABLE_KEY}"
+          SERVICE="${SERVICE_ROLE_KEY:-$SECRET_KEY}"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${API_URL:-http://127.0.0.1:54321}"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE"
+            echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000"
+          } > .env.local
+          test -n "$ANON" && test -n "$SERVICE"
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: npm run build 2>&1 | tee ci-logs/build.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Install Playwright browser
+        if: steps.build.outcome == 'success' && steps.supabase.outcome == 'success'
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        id: e2e
+        if: steps.build.outcome == 'success' && steps.supabase.outcome == 'success'
+        continue-on-error: true
+        run: |
+          mkdir -p test-results/screens
+          npm run test:e2e 2>&1 | tee ci-logs/e2e.log; test ${PIPESTATUS[0]} -eq 0
+
+      - name: Publish report to the ci-report branch
+        if: always()
+        env:
+          RESULTS: |
+            install=${{ steps.install.outcome }}
+            lint=${{ steps.lint.outcome }}
+            typecheck=${{ steps.typecheck.outcome }}
+            unit=${{ steps.unit.outcome }}
+            seed=${{ steps.seed.outcome }}
+            supabase=${{ steps.supabase.outcome }}
+            build=${{ steps.build.outcome }}
+            e2e=${{ steps.e2e.outcome }}
+        run: |
+          rm -rf /tmp/report && mkdir -p /tmp/report/logs /tmp/report/screens
+          echo "commit=${GITHUB_SHA}" > /tmp/report/RESULTS.txt
+          echo "$RESULTS" >> /tmp/report/RESULTS.txt
+          cp ci-logs/*.log /tmp/report/logs/ 2>/dev/null || true
+          cp -r test-results/screens/. /tmp/report/screens/ 2>/dev/null || true
+          find test-results -name "*.png" -path "*failed*" -exec cp {} /tmp/report/screens/ \; 2>/dev/null || true
+          cp package-lock.json /tmp/report/ 2>/dev/null || true
+          cd /tmp/report
+          git init -q -b ci-report
+          git config user.name "sankofa-ci"
+          git config user.email "ci@users.noreply.github.com"
+          git add -A && git commit -qm "CI report for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-report
+
+      - name: Fail if any check failed
+        if: always()
+        run: |
+          for s in "${{ steps.lint.outcome }}" "${{ steps.typecheck.outcome }}" "${{ steps.unit.outcome }}" "${{ steps.seed.outcome }}" "${{ steps.supabase.outcome }}" "${{ steps.build.outcome }}" "${{ steps.e2e.outcome }}"; do
+            if [ "$s" != "success" ]; then echo "A check failed: $s"; exit 1; fi
+          done
