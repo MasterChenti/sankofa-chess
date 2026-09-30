@@ -101,19 +101,21 @@ export function ChessBoard({
   );
 
   const onSquareClick = React.useCallback(
-    ({ square, piece }: { square: string; piece: { pieceType: string } | null }) => {
-      if (!interactive || promotion) return;
+    ({ square }: { square: string }) => {
+      if (!interactive || promotion || !game) return;
       if (selected && targets.some((t) => t.to === square)) {
         void attempt(selected, square);
         return;
       }
-      if (piece && piece.pieceType[0] === turn) {
+      // Read the piece from our own position, not the board's (which may still be mid-animation).
+      const piece = game.get(square as Square);
+      if (piece && piece.color === turn) {
         setSelected(square === selected ? null : square);
         return;
       }
       setSelected(null);
     },
-    [interactive, promotion, selected, targets, attempt, turn],
+    [interactive, promotion, game, selected, targets, attempt, turn],
   );
 
   const squareStyles = React.useMemo(() => {
@@ -161,7 +163,7 @@ export function ChessBoard({
             allowDrawingArrows: false,
             dragActivationDistance: 6,
             arrows: arrows.map((a) => ({ startSquare: a.from, endSquare: a.to, color: a.color ?? "rgba(143,191,122,.85)" })),
-            canDragPiece: ({ piece }) => interactive && piece.pieceType[0] === turn,
+            canDragPiece: ({ square }) => Boolean(interactive && square && game?.get(square as Square)?.color === turn),
             onPieceDrag: ({ square }) => {
               if (square) setSelected(square);
             },
