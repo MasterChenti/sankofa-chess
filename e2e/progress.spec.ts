@@ -11,6 +11,7 @@ test("puzzles: wrong answer, retry, correct answer and progress", async ({ page 
   await page.getByTestId("puzzle-retry").click();
   await move(page, "puzzle-board", "d1", "d8");
   await expect(page.getByTestId("puzzle-feedback")).toHaveText("Excellent. You saw the tactic.");
+  await expect(page.getByTestId("puzzle-feedback")).toHaveAttribute("data-saving", "false");
   await page.screenshot({ path: "test-results/screens/07-puzzle.png", fullPage: true });
 
   // Multi-move puzzle with an automatic reply.
@@ -20,6 +21,7 @@ test("puzzles: wrong answer, retry, correct answer and progress", async ({ page 
   await page.waitForTimeout(900);
   await move(page, "puzzle-board", "c7", "a8");
   await expect(page.getByTestId("puzzle-feedback")).toHaveText("Excellent. You saw the tactic.");
+  await expect(page.getByTestId("puzzle-feedback")).toHaveAttribute("data-saving", "false");
 
   await page.goto("/app/home");
   await expect(page.getByTestId("daily-progress")).toHaveText("2 / 3");

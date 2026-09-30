@@ -24,6 +24,7 @@ export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzz
   const [wrongMove, setWrongMove] = React.useState<string | null>(null);
   const [reported, setReported] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [saving, setSaving] = React.useState(false);
   const solverColor = puzzle.fen.split(" ")[1] === "b" ? "b" : "w";
 
   React.useEffect(() => {
@@ -48,7 +49,8 @@ export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzz
   const solverMovesDone = Math.ceil(moves.length / 2);
 
   async function report(outcome: "solved" | "failed" | "revealed", line: string[]) {
-    const res = await recordPuzzleAttempt({ puzzleId: puzzle.id, moves: line, outcome });
+    setSaving(true);
+    const res = await recordPuzzleAttempt({ puzzleId: puzzle.id, moves: line, outcome }).finally(() => setSaving(false));
     if (!res.ok) setSaveError(res.error);
     else {
       setSaveError(null);
@@ -146,6 +148,7 @@ export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzz
         </div>
         <p
           data-testid="puzzle-feedback"
+          data-saving={saving}
           aria-live="polite"
           className={cn(
             "rounded-[var(--radius-md)] px-4 py-3.5 font-semibold",
