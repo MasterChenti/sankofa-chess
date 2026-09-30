@@ -90,6 +90,24 @@ jobs:
           mkdir -p test-results/screens
           npm run test:e2e 2>&1 | tee ci-logs/e2e.log; test ${PIPESTATUS[0]} -eq 0
 
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo "## Results"
+            echo '```'
+            echo "lint=${{ steps.lint.outcome }} typecheck=${{ steps.typecheck.outcome }} unit=${{ steps.unit.outcome }} seed=${{ steps.seed.outcome }} supabase=${{ steps.supabase.outcome }} build=${{ steps.build.outcome }} e2e=${{ steps.e2e.outcome }}"
+            echo '```'
+            for f in lint typecheck unit seed supabase build e2e; do
+              if [ -f "ci-logs/$f.log" ]; then
+                echo "### $f (last lines)"
+                echo '```'
+                grep -v "^\s*$" "ci-logs/$f.log" | sed 's/\x1b\[[0-9;]*m//g' | tail -n 120
+                echo '```'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Publish report to the ci-report branch
         if: always()
         env:
@@ -115,7 +133,7 @@ jobs:
           git config user.name "sankofa-ci"
           git config user.email "ci@users.noreply.github.com"
           git add -A && git commit -qm "CI report for ${GITHUB_SHA}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-report
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-report || echo "::warning::Could not push ci-report branch (repository workflow permissions are read-only)"
 
       - name: Fail if any check failed
         if: always()
