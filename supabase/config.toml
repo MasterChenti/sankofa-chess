@@ -1,0 +1,35 @@
+# Local development config for the Supabase CLI (`npm run db:start`).
+project_id = "sankofa-chess"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**", "http://127.0.0.1:3000/**"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Local only: skip email confirmation so sign-up lands straight in onboarding.
+# In production keep confirmations ON (Supabase dashboard → Authentication → Providers → Email).
+enable_confirmations = false
