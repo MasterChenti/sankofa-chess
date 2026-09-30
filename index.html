@@ -1,0 +1,2330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F0F0F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sankofa">
+
+<title>Sankofa Chess — Learn from the past. Master your next move.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ SANKOFA DESIGN SYSTEM ============ */
+:root{
+  --obsidian:#0F0F0F; --brown:#4B2E2B; --gold:#D4AF37; --ivory:#F5F0E6; --warm:#A8A29A;
+  --bg:#0F0F0F; --bg-2:#15110F; --surface:#1A1512; --surface-2:#231C18; --surface-3:#2E2520;
+  --line:rgba(245,240,230,.09); --line-2:rgba(245,240,230,.16);
+  --text:#F5F0E6; --text-2:#D9D1C3; --muted:#A8A29A; --faint:#7C746B;
+  --accent:#D4AF37; --accent-ink:#1A1206; --accent-soft:rgba(212,175,55,.14);
+  --good:#8FBF7A; --warn:#E0A84A; --bad:#E07A5F; --info:#8FB3D9;
+  --sq-light:#E8DBC0; --sq-dark:#735039; --sq-sel:rgba(212,175,55,.55); --sq-last:rgba(212,175,55,.30);
+  --pw-fill:#FBF6EA; --pw-stroke:#241913; --pb-fill:#1E1613; --pb-stroke:#C9B48A; --pb-detail:#C9B48A;
+  --shadow-1:0 1px 0 rgba(255,255,255,.03) inset, 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2:0 20px 50px -20px rgba(0,0,0,.7);
+  --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:22px;
+  --f-display:'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --f-ui:'Figtree', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --nav-h:64px;
+  color-scheme:dark;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#F5F0E6; --bg-2:#EFE8DA; --surface:#FFFCF6; --surface-2:#F3ECDF; --surface-3:#E8DFCF;
+  --line:rgba(15,15,15,.09); --line-2:rgba(15,15,15,.16);
+  --text:#17110E; --text-2:#3A2F29; --muted:#6E655C; --faint:#8E857B;
+  --accent:#9C7A17; --accent-ink:#FFF9EA; --accent-soft:rgba(156,122,23,.12);
+  --good:#4E8A3A; --warn:#B7791F; --bad:#C0533A; --info:#3D6E9E;
+  --shadow-1:0 1px 2px rgba(40,25,10,.08); --shadow-2:0 24px 50px -24px rgba(60,35,15,.35);
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#F5F0E6; --bg-2:#EFE8DA; --surface:#FFFCF6; --surface-2:#F3ECDF; --surface-3:#E8DFCF;
+  --line:rgba(15,15,15,.09); --line-2:rgba(15,15,15,.16);
+  --text:#17110E; --text-2:#3A2F29; --muted:#6E655C; --faint:#8E857B;
+  --accent:#9C7A17; --accent-ink:#FFF9EA; --accent-soft:rgba(156,122,23,.12);
+  --good:#4E8A3A; --warn:#B7791F; --bad:#C0533A; --info:#3D6E9E;
+  --shadow-1:0 1px 2px rgba(40,25,10,.08); --shadow-2:0 24px 50px -24px rgba(60,35,15,.35);
+  color-scheme:light;
+}
+:root[data-theme="dark"]{ color-scheme:dark; }
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 80px); -webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--text); font-family:var(--f-ui); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased; min-height:100vh}
+img,svg:not([width]){max-width:100%}
+svg[width]{flex:none}
+a{color:inherit}
+[hidden]{display:none !important}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+@media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation-duration:.001ms!important; transition-duration:.001ms!important} }
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- type ---------- */
+.display{font-family:var(--f-display); font-weight:560; letter-spacing:-.02em; line-height:1.02; font-variation-settings:"opsz" 144, "SOFT" 30}
+h1,h2,h3{font-family:var(--f-display); font-weight:560; letter-spacing:-.015em; margin:0; font-variation-settings:"opsz" 96}
+h1{font-size:clamp(2rem,4.5vw,3rem); line-height:1.05}
+h2{font-size:clamp(1.55rem,3vw,2.1rem); line-height:1.1}
+h3{font-size:1.22rem; line-height:1.25}
+p{margin:0}
+.lead{font-size:1.125rem; color:var(--text-2); max-width:34em}
+.muted{color:var(--muted)} .faint{color:var(--faint)} .small{font-size:.875rem} .tiny{font-size:.78rem}
+.serif{font-family:var(--f-display)}
+.num{font-variant-numeric:tabular-nums}
+.stack>*+*{margin-top:var(--gap,12px)}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1120px; margin:0 auto; padding-left:max(20px,env(safe-area-inset-left)); padding-right:max(20px,env(safe-area-inset-right))}
+.page{padding-top:28px; padding-bottom:calc(var(--nav-h) + 48px)}
+@media (min-width:860px){ .page{padding-top:40px; padding-bottom:80px} }
+.row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+.between{justify-content:space-between}
+.grid{display:grid; gap:16px}
+.g2{grid-template-columns:1fr} .g3{grid-template-columns:1fr} .g4{grid-template-columns:repeat(2,1fr)}
+@media (min-width:700px){ .g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} }
+.section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:36px 0 14px; flex-wrap:wrap}
+.section-head .tabs{max-width:100%; overflow-x:auto; scrollbar-width:none}
+.section-head:first-child{margin-top:0}
+
+/* ---------- header / nav ---------- */
+.topbar{position:sticky; top:0; z-index:40; background:color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); padding-top:env(safe-area-inset-top,0px); margin-top:calc(-1 * env(safe-area-inset-top,0px))}
+.topbar .wrap{display:flex; align-items:center; gap:20px; height:64px}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--f-display); font-weight:600; font-size:1.12rem; letter-spacing:.01em}
+.brand svg{width:34px; height:34px}
+.brand small{display:block; font-family:var(--f-ui); font-size:.7rem; color:var(--muted); font-weight:500; letter-spacing:.02em; margin-top:-2px}
+.mainnav{display:none; gap:4px; margin-left:12px}
+.mainnav a{padding:8px 12px; border-radius:var(--r-sm); text-decoration:none; color:var(--muted); font-weight:500; font-size:.95rem}
+.mainnav a:hover{color:var(--text); background:var(--surface-2)}
+.mainnav a[aria-current="page"]{color:var(--text); background:var(--surface-2)}
+.topbar .spacer{flex:1}
+.subnav{display:none; gap:14px; font-size:.88rem}
+.subnav a{color:var(--muted); text-decoration:none} .subnav a:hover{color:var(--text)}
+@media (min-width:860px){ .mainnav,.subnav{display:flex} }
+.avatar{width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:var(--brown); color:var(--ivory); font-weight:600; font-size:.9rem; text-decoration:none; border:1px solid var(--line-2); flex:none}
+.xp-chip{display:none; align-items:center; gap:8px; font-size:.82rem; color:var(--muted)}
+@media (min-width:560px){ .xp-chip{display:flex} }
+.bottomnav{position:fixed; left:0; right:0; bottom:0; z-index:50; background:color-mix(in srgb, var(--bg-2) 94%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom,0px); display:grid; grid-template-columns:repeat(5,1fr)}
+.bottomnav a{display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 0 8px; text-decoration:none; color:var(--faint); font-size:.72rem; font-weight:600}
+.bottomnav a svg{width:23px; height:23px}
+.bottomnav a[aria-current="page"]{color:var(--accent)}
+@media (min-width:860px){ .bottomnav{display:none} }
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 18px; border-radius:var(--r-sm); border:1px solid transparent; font-weight:600; font-size:.95rem; cursor:pointer; text-decoration:none; transition:background .15s, border-color .15s, transform .08s; white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--accent); color:var(--accent-ink)}
+.btn-primary:hover{background:color-mix(in srgb, var(--accent) 88%, white)}
+.btn-secondary{background:transparent; border-color:var(--line-2); color:var(--text)}
+.btn-secondary:hover{background:var(--surface-2)}
+.btn-ghost{background:transparent; color:var(--muted); padding:0 10px}
+.btn-ghost:hover{color:var(--text); background:var(--surface-2)}
+.btn-danger{background:transparent; border-color:color-mix(in srgb, var(--bad) 45%, transparent); color:var(--bad)}
+.btn-lg{min-height:52px; padding:0 24px; font-size:1rem}
+.btn-sm{min-height:36px; padding:0 12px; font-size:.86rem}
+.btn svg{width:18px; height:18px; flex:none; max-width:none}
+.btn-sm svg{width:16px; height:16px}
+.btn-block{width:100%}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+.link{color:var(--accent); text-decoration:none; font-weight:600} .link:hover{text-decoration:underline}
+
+/* ---------- surfaces ---------- */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:22px; box-shadow:var(--shadow-1)}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:16px}
+.tile-link{display:block; text-decoration:none; transition:border-color .15s, background .15s}
+.tile-link:hover{border-color:var(--line-2); background:var(--surface-2)}
+.inset{background:var(--surface-2); border-radius:var(--r-sm); padding:14px}
+.divider{height:1px; background:var(--line); margin:18px 0}
+
+/* ---------- badges, bars, tabs ---------- */
+.badge{display:inline-flex; align-items:center; gap:6px; font-size:.76rem; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--surface-3); color:var(--text-2)}
+.badge-gold{background:var(--accent-soft); color:var(--accent)}
+.badge-good{background:color-mix(in srgb, var(--good) 18%, transparent); color:var(--good)}
+.badge-bad{background:color-mix(in srgb, var(--bad) 18%, transparent); color:var(--bad)}
+.bar{height:8px; border-radius:999px; background:var(--surface-3); overflow:hidden}
+.bar>i{display:block; height:100%; background:var(--accent); border-radius:999px; transition:width .5s ease}
+.tabs{display:inline-flex; gap:4px; padding:4px; background:var(--surface-2); border-radius:12px}
+.tabs button{border:0; background:transparent; padding:8px 14px; border-radius:9px; cursor:pointer; color:var(--muted); font-weight:600; font-size:.9rem; min-height:38px}
+.tabs button[aria-selected="true"]{background:var(--surface); color:var(--text); box-shadow:var(--shadow-1)}
+
+/* ---------- stats ---------- */
+.stat{display:flex; flex-direction:column; gap:2px}
+.stat b{font-family:var(--f-display); font-size:1.7rem; font-weight:560; line-height:1.1; font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem; color:var(--muted)}
+.stats{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+@media (min-width:640px){ .stats{grid-template-columns:repeat(5,1fr)} }
+.stats .tile{padding:14px 16px}
+
+/* ---------- forms ---------- */
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-size:.86rem; font-weight:600; color:var(--text-2)}
+.field .hint{font-size:.78rem; color:var(--faint)}
+.field .err{font-size:.8rem; color:var(--bad); min-height:0}
+.input,select.input{min-height:48px; padding:0 14px; border-radius:var(--r-sm); border:1px solid var(--line-2); background:var(--bg-2); color:var(--text); font:inherit; font-size:16px; width:100%}
+.input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.input[aria-invalid="true"]{border-color:var(--bad)}
+.choice{display:grid; gap:10px}
+.choice button{display:flex; align-items:center; gap:14px; text-align:left; padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--line-2); background:var(--surface); cursor:pointer; min-height:60px}
+.choice button:hover{border-color:var(--faint)}
+.choice button[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft)}
+.choice button b{display:block; font-weight:600}
+.choice button span{font-size:.85rem; color:var(--muted)}
+.seg{display:flex; flex-wrap:wrap; gap:8px}
+.seg button{min-height:40px; padding:0 14px; border-radius:var(--r-sm); border:1px solid var(--line-2); background:transparent; cursor:pointer; font-weight:600; font-size:.9rem; color:var(--text-2)}
+.seg button[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--text)}
+
+/* ---------- board ---------- */
+.board-wrap{position:relative; width:100%; max-width:min(560px, calc(100vh - 230px)); margin:0 auto; aspect-ratio:1; border-radius:8px; box-shadow:0 0 0 6px var(--brown), 0 0 0 7px color-mix(in srgb, var(--gold) 40%, transparent), var(--shadow-2); touch-action:none; user-select:none; -webkit-user-select:none}
+@media (max-width:700px){ .board-wrap{max-width:100%; box-shadow:0 0 0 4px var(--brown), var(--shadow-2)} }
+.board{display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr); width:100%; height:100%; border-radius:6px; overflow:hidden}
+.sq{position:relative; display:grid; place-items:center; cursor:default}
+.sq.l{background:var(--sq-light)} .sq.d{background:var(--sq-dark)}
+.sq.last::before{content:""; position:absolute; inset:0; background:var(--sq-last)}
+.sq.sel::before{content:""; position:absolute; inset:0; background:var(--sq-sel)}
+.sq.check::before{content:""; position:absolute; inset:0; background:radial-gradient(circle, rgba(224,90,60,.95) 0%, rgba(224,90,60,.55) 38%, transparent 72%)}
+.sq.hint-sq::before{content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 4px var(--gold)}
+.sq .pc{position:relative; width:92%; height:92%; z-index:2; pointer-events:none; filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.28))}
+.sq.can{cursor:grab}
+.sq .dot{position:absolute; width:30%; height:30%; border-radius:50%; background:rgba(30,20,12,.28); z-index:3; pointer-events:none}
+.sq .ring{position:absolute; inset:5%; border-radius:50%; border:4px solid rgba(30,20,12,.3); z-index:3; pointer-events:none}
+.sq .co{position:absolute; font-size:clamp(8px,1.6vw,11px); font-weight:700; z-index:1; pointer-events:none; line-height:1}
+.sq .co.f{right:4px; bottom:3px} .sq .co.r{left:4px; top:4px}
+.sq.l .co{color:var(--sq-dark)} .sq.d .co{color:var(--sq-light)}
+.ghost{position:fixed; z-index:200; pointer-events:none; transform:translate(-50%,-50%); filter:drop-shadow(0 10px 10px rgba(0,0,0,.35))}
+.promo{position:absolute; inset:0; z-index:20; background:rgba(10,8,6,.66); display:grid; place-items:center; border-radius:6px}
+.promo .opts{display:flex; gap:8px; background:var(--surface); padding:10px; border-radius:var(--r-md); box-shadow:var(--shadow-2)}
+.promo button{width:64px; height:64px; border-radius:var(--r-sm); border:1px solid var(--line-2); background:var(--sq-light); cursor:pointer; padding:4px}
+.promo button:hover{border-color:var(--accent)}
+.board-mini{max-width:100%; box-shadow:0 0 0 3px var(--brown)}
+
+/* ---------- play ---------- */
+.play-layout{display:grid; gap:18px; grid-template-columns:1fr}
+@media (min-width:980px){ .play-layout{grid-template-columns:minmax(0,1fr) 340px; align-items:start} }
+@media (max-width:979px){ .setup-preview{order:2; max-width:420px; width:100%; margin:8px auto 0; opacity:.9} }
+.player-strip{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 2px; max-width:min(560px, calc(100vh - 230px)); margin:0 auto}
+@media (max-width:700px){ .player-strip{max-width:100%} }
+.player-strip .who{display:flex; align-items:center; gap:10px; min-width:0}
+.player-strip .who b{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.player-strip .caps{display:flex; flex-wrap:wrap; align-items:center; font-size:.8rem; color:var(--muted); min-height:18px}
+.player-strip .caps svg{width:16px; height:16px; margin-right:-4px}
+.clock{font-variant-numeric:tabular-nums; font-weight:700; font-size:1.15rem; padding:6px 12px; border-radius:var(--r-sm); background:var(--surface-2); color:var(--muted); min-width:84px; text-align:center}
+.clock.on{background:var(--ivory); color:#17110E}
+.clock.low.on{background:var(--bad); color:#fff}
+.moves{max-height:280px; overflow:auto; display:grid; grid-template-columns:36px 1fr 1fr; font-variant-numeric:tabular-nums; font-size:.92rem; border-radius:var(--r-sm); background:var(--surface-2)}
+.moves>*{padding:6px 8px}
+.moves .n{color:var(--faint); text-align:right}
+.moves .m{cursor:pointer; border-radius:6px}
+.moves .m:hover{background:var(--surface-3)}
+.moves .m.cur{background:var(--accent-soft); color:var(--text)}
+.status-line{font-weight:600; min-height:24px}
+.thinking::after{content:""; display:inline-block; width:6px; height:6px; margin-left:8px; border-radius:50%; background:var(--accent); animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* ---------- classification ---------- */
+.cls{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle}
+.cls.best{background:var(--good)} .cls.good{background:color-mix(in srgb, var(--good) 55%, var(--surface-3))} .cls.inaccuracy{background:var(--warn)} .cls.mistake{background:#E38A4A} .cls.blunder{background:var(--bad)}
+
+/* ---------- landing ---------- */
+.hero{padding-top:44px; padding-bottom:56px; display:grid; gap:40px; align-items:center}
+@media (min-width:900px){ .hero{grid-template-columns:1.05fr .95fr; padding-top:72px; padding-bottom:88px} }
+.hero h1{font-size:clamp(2.6rem,7.2vw,5.4rem); line-height:.98; letter-spacing:-.03em; max-width:9.5em}
+.hero .lead{margin-top:22px}
+.hero .ctas{margin-top:30px}
+.hero-board{position:relative}
+.hero-board .caption{display:flex; justify-content:space-between; align-items:center; margin-top:18px; font-size:.9rem; gap:10px}
+.band{border-top:1px solid var(--line); padding:64px 0}
+.band-dark{background:var(--bg-2)}
+.split{display:grid; gap:32px}
+@media (min-width:860px){ .split{grid-template-columns:5fr 7fr; gap:64px} }
+.quote{font-family:var(--f-display); font-size:clamp(1.5rem,3.4vw,2.35rem); line-height:1.2; letter-spacing:-.01em; font-weight:450; font-style:italic; max-width:22em}
+.catlist{display:grid; gap:0; border-top:1px solid var(--line)}
+.catlist a{display:grid; grid-template-columns:1fr auto; gap:4px 16px; padding:18px 0; border-bottom:1px solid var(--line); text-decoration:none}
+.catlist a:hover h3{color:var(--accent)}
+.catlist a p{grid-column:1; color:var(--muted); font-size:.93rem}
+.catlist a span{grid-row:1/3; grid-column:2; align-self:center; color:var(--faint); font-size:.85rem}
+.metric-row{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--line)}
+@media (min-width:700px){ .metric-row{grid-template-columns:repeat(5,1fr)} }
+.metric-row>div{background:var(--surface); padding:20px}
+@media (max-width:699px){ .metric-row>div:last-child:nth-child(odd){grid-column:1 / -1} }
+.final-cta{text-align:center; padding:88px 0}
+.final-cta h2{font-size:clamp(2.2rem,5vw,3.6rem)}
+.footer{border-top:1px solid var(--line); padding:28px 0 calc(28px + env(safe-area-inset-bottom,0px)); font-size:.85rem; color:var(--faint)}
+
+/* ---------- dashboard ---------- */
+.dash-grid{display:grid; gap:16px}
+@media (min-width:900px){ .dash-grid{grid-template-columns:1.4fr 1fr} }
+.mission{position:relative; overflow:hidden}
+.mission .sym{position:absolute; right:-18px; bottom:-26px; width:150px; opacity:.07; pointer-events:none}
+.qa{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.qa a{display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:16px; border-radius:var(--r-md); background:var(--surface); border:1px solid var(--line); text-decoration:none; font-weight:600}
+.qa a:hover{border-color:var(--line-2); background:var(--surface-2)}
+.qa a svg{width:26px; height:26px; color:var(--accent)}
+.proverb{font-family:var(--f-display); font-style:italic; font-size:1.3rem; line-height:1.35}
+
+/* ---------- learn / lessons ---------- */
+.lesson-row{display:flex; align-items:center; gap:14px; padding:14px 4px; border-bottom:1px solid var(--line); text-decoration:none}
+.lesson-row:last-child{border-bottom:0}
+.lesson-row:hover b{color:var(--accent)}
+.lesson-row .ix{width:34px; height:34px; border-radius:50%; display:grid; place-items:center; flex:none; font-size:.82rem; font-weight:700; background:var(--surface-3); color:var(--muted)}
+.lesson-row .ix.done{background:var(--accent); color:var(--accent-ink)}
+.lesson-row .grow{flex:1; min-width:0}
+.lesson-layout{display:grid; gap:24px}
+@media (min-width:960px){ .lesson-layout{grid-template-columns:minmax(0,1fr) 380px; align-items:start} }
+.feedback{border-radius:var(--r-md); padding:14px 16px; font-weight:600; display:flex; gap:10px; align-items:flex-start}
+.feedback.ok{background:color-mix(in srgb, var(--good) 16%, transparent); color:var(--good)}
+.feedback.no{background:color-mix(in srgb, var(--bad) 14%, transparent); color:var(--bad)}
+.feedback.neutral{background:var(--surface-2); color:var(--text-2)}
+.feedback p{font-weight:500; color:var(--text-2); margin-top:4px}
+
+/* ---------- puzzle cards ---------- */
+.pz-list{display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.pz{display:block; text-decoration:none; border-radius:var(--r-md); border:1px solid var(--line); background:var(--surface); padding:10px; transition:border-color .15s}
+.pz:hover{border-color:var(--line-2)}
+.pz .mini{border-radius:4px; overflow:hidden; margin-bottom:10px}
+.pz b{display:block; font-size:.92rem}
+
+/* ---------- profile ---------- */
+.profile-head{display:flex; gap:18px; align-items:center; flex-wrap:wrap}
+.profile-head .avatar{width:76px; height:76px; font-size:1.8rem; font-family:var(--f-display)}
+.ach{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+@media (min-width:640px){ .ach{grid-template-columns:repeat(4,1fr)} }
+.ach>div{padding:14px; border-radius:var(--r-md); background:var(--surface-2); display:flex; flex-direction:column; gap:6px}
+.ach>div.locked{opacity:.45}
+.ach .ico{font-size:1.5rem; line-height:1}
+.ladder{display:grid; gap:6px}
+.ladder>div{display:flex; justify-content:space-between; padding:10px 14px; border-radius:var(--r-sm); background:var(--surface-2); font-size:.92rem}
+.ladder>div.here{background:var(--accent-soft); color:var(--accent); font-weight:600}
+
+/* ---------- leaderboard ---------- */
+.lb{width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums}
+.lb th{text-align:left; font-size:.8rem; color:var(--faint); font-weight:600; padding:10px 12px; border-bottom:1px solid var(--line)}
+.lb td{padding:12px; border-bottom:1px solid var(--line)}
+.lb tr.me td{background:var(--accent-soft)}
+.lb td:first-child{width:52px; color:var(--muted)}
+
+/* ---------- stories ---------- */
+.story-card{display:flex; flex-direction:column; gap:10px; text-decoration:none; padding:0; overflow:hidden}
+.story-card .art{aspect-ratio:16/9; background:var(--brown); display:grid; place-items:center; color:var(--gold)}
+.story-card .art svg{height:62%; width:auto}
+.story-card .txt{padding:4px 18px 18px}
+.story-card:hover h3{color:var(--accent)}
+.article{max-width:40em; margin:0 auto}
+.article p{font-family:var(--f-display); font-size:1.14rem; line-height:1.72; color:var(--text-2); margin-top:1.1em; font-variation-settings:"opsz" 14}
+.article .dek{font-family:var(--f-ui); font-size:1.15rem; color:var(--muted); margin-top:14px}
+.article .src{font-family:var(--f-ui); font-size:.85rem; color:var(--faint); border-top:1px solid var(--line); padding-top:14px; margin-top:32px}
+
+/* ---------- analysis ---------- */
+.an-layout{display:grid; gap:20px}
+@media (min-width:980px){ .an-layout{grid-template-columns:minmax(0,1fr) 380px; align-items:start} }
+.evalgraph{width:100%; height:110px; display:block; border-radius:var(--r-sm); background:var(--surface-2); cursor:pointer}
+.steps{counter-reset:s; display:grid; gap:14px}
+.steps>div{display:grid; grid-template-columns:30px 1fr; gap:4px 12px}
+.steps>div::before{counter-increment:s; content:counter(s); grid-row:1/3; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:var(--surface-3); font-weight:700; font-size:.8rem; color:var(--accent)}
+.steps b{font-size:.84rem; color:var(--muted); font-weight:600}
+.chat{display:flex; flex-direction:column; gap:10px; max-height:420px; overflow:auto; padding-right:4px}
+.msg{padding:12px 14px; border-radius:14px; font-size:.95rem; max-width:92%; white-space:pre-wrap}
+.msg.me{align-self:flex-end; background:var(--accent-soft); border-bottom-right-radius:4px}
+.msg.coach{align-self:flex-start; background:var(--surface-2); border-bottom-left-radius:4px}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chips button{border:1px solid var(--line-2); background:transparent; border-radius:999px; padding:7px 13px; font-size:.85rem; cursor:pointer; color:var(--text-2); min-height:36px}
+.chips button:hover{border-color:var(--accent); color:var(--text)}
+
+/* ---------- modal / toast ---------- */
+.scrim{position:fixed; inset:0; z-index:300; background:rgba(8,6,5,.62); display:grid; place-items:center; padding:20px; animation:fade .18s ease}
+.modal{background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r-lg); padding:28px; width:min(440px,100%); box-shadow:var(--shadow-2); animation:rise .22s ease}
+@keyframes fade{from{opacity:0}} @keyframes rise{from{opacity:0; transform:translateY(10px) scale(.98)}}
+.toasts{position:fixed; z-index:400; left:50%; transform:translateX(-50%); bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; width:max-content; max-width:92vw}
+@media (min-width:860px){ .toasts{bottom:28px} }
+.toast{background:var(--text); color:var(--bg); padding:10px 16px; border-radius:999px; font-weight:600; font-size:.9rem; box-shadow:var(--shadow-2); animation:rise .2s ease}
+.toast em{font-style:normal; color:var(--accent); filter:brightness(.8)}
+
+/* ---------- misc ---------- */
+.empty{padding:32px 20px; text-align:center; border:1px dashed var(--line-2); border-radius:var(--r-md); color:var(--muted)}
+.skeleton{background:linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2)); background-size:200% 100%; animation:sk 1.3s infinite; border-radius:8px}
+@keyframes sk{to{background-position:-200% 0}}
+.flag{font-size:1.1em}
+.kbd-hint{font-size:.78rem; color:var(--faint)}
+.pill-note{display:inline-flex; gap:6px; align-items:center; font-size:.78rem; color:var(--faint); border:1px solid var(--line); border-radius:999px; padding:4px 10px}
+.back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.9rem; margin-bottom:14px}
+.back:hover{color:var(--text)}
+.onb{max-width:520px; margin:0 auto; padding:40px 0 80px}
+.dots{display:flex; gap:6px}
+.dots i{width:22px; height:4px; border-radius:4px; background:var(--surface-3)}
+.dots i.on{background:var(--accent)}
+.auth{max-width:460px; margin:0 auto; padding:36px 0 90px}
+.or{display:flex; align-items:center; gap:12px; color:var(--faint); font-size:.82rem; margin:18px 0}
+.or::before,.or::after{content:""; flex:1; height:1px; background:var(--line)}
+.grid.kv{grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px 12px}
+.kv .stat b{font-size:1.35rem}
+.kv .stat span{font-size:.78rem; color:var(--muted); line-height:1.3}
+@media (max-width:560px){ .profile-head>.panel{flex:1 1 100%; min-width:0} }
+
+</style>
+</head>
+<body>
+<div id="app"><div class="boot" style="min-height:100vh;display:grid;place-items:center;color:#A8A29A;font-family:Figtree,system-ui,sans-serif">Loading Sankofa Chess…</div></div>
+<script>
+/* ============ SANKOFA ENGINE: rules + search ============
+   Board: 64 squares, index 0 = a8, 63 = h1. Pieces: 'PNBRQK' white, 'pnbrqk' black, null empty. */
+const Chess = (function () {
+  const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  const FILES = 'abcdefgh';
+  const name = i => FILES[i & 7] + (8 - (i >> 3));
+  const idx = s => (8 - +s[1]) * 8 + FILES.indexOf(s[0]);
+  const colorOf = p => (p ? (p === p.toUpperCase() ? 'w' : 'b') : null);
+  const KN = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+  const KG = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+  const DIAG = [[-1,-1],[-1,1],[1,-1],[1,1]], ORTH = [[-1,0],[1,0],[0,-1],[0,1]];
+  const knightT = [], kingT = [], rays = {};
+  for (let s = 0; s < 64; s++) {
+    const r = s >> 3, f = s & 7;
+    knightT[s] = KN.filter(([a,b]) => r+a>=0&&r+a<8&&f+b>=0&&f+b<8).map(([a,b]) => (r+a)*8+f+b);
+    kingT[s] = KG.filter(([a,b]) => r+a>=0&&r+a<8&&f+b>=0&&f+b<8).map(([a,b]) => (r+a)*8+f+b);
+    rays[s] = {};
+    for (const [a,b] of DIAG.concat(ORTH)) {
+      const ray = []; let rr = r+a, ff = f+b;
+      while (rr>=0&&rr<8&&ff>=0&&ff<8) { ray.push(rr*8+ff); rr+=a; ff+=b; }
+      rays[s][a+','+b] = ray;
+    }
+  }
+  const diagRays = s => DIAG.map(([a,b]) => rays[s][a+','+b]);
+  const orthRays = s => ORTH.map(([a,b]) => rays[s][a+','+b]);
+  const DR = [], OR = [];
+  for (let s = 0; s < 64; s++) { DR[s] = diagRays(s); OR[s] = orthRays(s); }
+
+  class Game {
+    constructor(fen) { this.load(fen || START); }
+    load(fen) {
+      const [pos, turn, cast, ep, half, full] = fen.trim().split(/\s+/);
+      this.b = new Array(64).fill(null);
+      let i = 0;
+      for (const ch of pos) {
+        if (ch === '/') continue;
+        if (/\d/.test(ch)) i += +ch; else this.b[i++] = ch;
+      }
+      this.turn = turn || 'w';
+      this.castle = { K: false, Q: false, k: false, q: false };
+      if (cast && cast !== '-') for (const c of cast) this.castle[c] = true;
+      this.ep = ep && ep !== '-' ? idx(ep) : -1;
+      this.half = +(half || 0); this.full = +(full || 1);
+      this.stack = []; this.hist = []; this.startFen = this.fen();
+      this.reps = {}; this.reps[this.key()] = 1;
+      return this;
+    }
+    key() { return this.fen().split(' ').slice(0, 4).join(' '); }
+    fen() {
+      let s = '';
+      for (let r = 0; r < 8; r++) {
+        let e = 0;
+        for (let f = 0; f < 8; f++) {
+          const p = this.b[r*8+f];
+          if (!p) e++; else { if (e) { s += e; e = 0; } s += p; }
+        }
+        if (e) s += e; if (r < 7) s += '/';
+      }
+      const c = ['K','Q','k','q'].filter(x => this.castle[x]).join('') || '-';
+      return `${s} ${this.turn} ${c} ${this.ep >= 0 ? name(this.ep) : '-'} ${this.half} ${this.full}`;
+    }
+    kingSq(c) { const k = c === 'w' ? 'K' : 'k'; return this.b.indexOf(k); }
+    attacked(sq, by) {
+      const b = this.b, up = by === 'w';
+      const P = up ? 'P' : 'p', N = up ? 'N' : 'n', B = up ? 'B' : 'b', R = up ? 'R' : 'r', Q = up ? 'Q' : 'q', K = up ? 'K' : 'k';
+      const r = sq >> 3, f = sq & 7;
+      // pawns: a white pawn attacks upward (towards lower index)
+      const pr = up ? r + 1 : r - 1;
+      if (pr >= 0 && pr < 8) {
+        if (f > 0 && b[pr*8+f-1] === P) return true;
+        if (f < 7 && b[pr*8+f+1] === P) return true;
+      }
+      for (const t of knightT[sq]) if (b[t] === N) return true;
+      for (const t of kingT[sq]) if (b[t] === K) return true;
+      for (const ray of DR[sq]) for (const t of ray) { const p = b[t]; if (p) { if (p === B || p === Q) return true; break; } }
+      for (const ray of OR[sq]) for (const t of ray) { const p = b[t]; if (p) { if (p === R || p === Q) return true; break; } }
+      return false;
+    }
+    inCheck(c) { c = c || this.turn; const k = this.kingSq(c); return k >= 0 && this.attacked(k, c === 'w' ? 'b' : 'w'); }
+    pseudo(capturesOnly) {
+      const b = this.b, me = this.turn, them = me === 'w' ? 'b' : 'w', out = [];
+      const add = (from, to, flag, promo) => {
+        const piece = b[from], cap = flag === 'e' ? (me === 'w' ? 'p' : 'P') : b[to];
+        if ((piece === 'P' && to < 8) || (piece === 'p' && to >= 56)) {
+          for (const pr of 'qrbn') out.push({ from, to, piece, captured: cap, promo: me === 'w' ? pr.toUpperCase() : pr, flag });
+        } else out.push({ from, to, piece, captured: cap, promo: promo || null, flag });
+      };
+      for (let s = 0; s < 64; s++) {
+        const p = b[s]; if (!p || colorOf(p) !== me) continue;
+        const t = p.toLowerCase(), r = s >> 3, f = s & 7;
+        if (t === 'p') {
+          const dir = me === 'w' ? -8 : 8, one = s + dir;
+          const startRank = me === 'w' ? 6 : 1, lastRank = me === 'w' ? 1 : 6;
+          if (!capturesOnly || r === lastRank) {
+            if (one >= 0 && one < 64 && !b[one]) {
+              add(s, one, 'n');
+              if (!capturesOnly && r === startRank && !b[one + dir]) add(s, one + dir, 'b');
+            }
+          }
+          for (const df of [-1, 1]) {
+            const nf = f + df; if (nf < 0 || nf > 7) continue;
+            const to = one + df;
+            if (b[to] && colorOf(b[to]) === them) add(s, to, 'c');
+            else if (to === this.ep) add(s, to, 'e');
+          }
+        } else if (t === 'n' || t === 'k') {
+          for (const to of (t === 'n' ? knightT : kingT)[s]) {
+            const q = b[to];
+            if (!q) { if (!capturesOnly) add(s, to, 'n'); }
+            else if (colorOf(q) === them) add(s, to, 'c');
+          }
+          if (t === 'k' && !capturesOnly) {
+            if (me === 'w' && s === 60) {
+              if (this.castle.K && b[63] === 'R' && !b[61] && !b[62] && !this.attacked(60,'b') && !this.attacked(61,'b') && !this.attacked(62,'b')) add(60, 62, 'k');
+              if (this.castle.Q && b[56] === 'R' && !b[59] && !b[58] && !b[57] && !this.attacked(60,'b') && !this.attacked(59,'b') && !this.attacked(58,'b')) add(60, 58, 'q');
+            } else if (me === 'b' && s === 4) {
+              if (this.castle.k && b[7] === 'r' && !b[5] && !b[6] && !this.attacked(4,'w') && !this.attacked(5,'w') && !this.attacked(6,'w')) add(4, 6, 'k');
+              if (this.castle.q && b[0] === 'r' && !b[3] && !b[2] && !b[1] && !this.attacked(4,'w') && !this.attacked(3,'w') && !this.attacked(2,'w')) add(4, 2, 'q');
+            }
+          }
+        } else {
+          const rs = t === 'b' ? DR[s] : t === 'r' ? OR[s] : DR[s].concat(OR[s]);
+          for (const ray of rs) for (const to of ray) {
+            const q = b[to];
+            if (!q) { if (!capturesOnly) add(s, to, 'n'); }
+            else { if (colorOf(q) === them) add(s, to, 'c'); break; }
+          }
+        }
+      }
+      return out;
+    }
+    make(m) {
+      const b = this.b;
+      this.stack.push({ m, castle: { ...this.castle }, ep: this.ep, half: this.half, full: this.full });
+      b[m.to] = m.promo || m.piece; b[m.from] = null;
+      if (m.flag === 'e') b[m.to + (this.turn === 'w' ? 8 : -8)] = null;
+      if (m.flag === 'k') { const r = m.to + 1, n = m.to - 1; b[n] = b[r]; b[r] = null; }
+      if (m.flag === 'q') { const r = m.to - 2, n = m.to + 1; b[n] = b[r]; b[r] = null; }
+      if (m.piece === 'K') this.castle.K = this.castle.Q = false;
+      if (m.piece === 'k') this.castle.k = this.castle.q = false;
+      for (const [sq, c] of [[63,'K'],[56,'Q'],[7,'k'],[0,'q']]) if (m.from === sq || m.to === sq) this.castle[c] = false;
+      this.ep = m.flag === 'b' ? (m.from + m.to) >> 1 : -1;
+      this.half = (m.piece.toLowerCase() === 'p' || m.captured) ? 0 : this.half + 1;
+      if (this.turn === 'b') this.full++;
+      this.turn = this.turn === 'w' ? 'b' : 'w';
+    }
+    unmake() {
+      const st = this.stack.pop(); if (!st) return;
+      const { m } = st, b = this.b;
+      this.turn = this.turn === 'w' ? 'b' : 'w';
+      b[m.from] = m.piece; b[m.to] = null;
+      if (m.flag === 'e') b[m.to + (this.turn === 'w' ? 8 : -8)] = m.captured;
+      else if (m.captured) b[m.to] = m.captured;
+      if (m.flag === 'k') { const r = m.to + 1, n = m.to - 1; b[r] = b[n]; b[n] = null; }
+      if (m.flag === 'q') { const r = m.to - 2, n = m.to + 1; b[r] = b[n]; b[n] = null; }
+      this.castle = st.castle; this.ep = st.ep; this.half = st.half; this.full = st.full;
+    }
+    legal(capturesOnly) {
+      const me = this.turn, res = [];
+      for (const m of this.pseudo(capturesOnly)) { this.make(m); if (!this.inCheck(me)) res.push(m); this.unmake(); }
+      return res;
+    }
+    movesFrom(sqName) { const s = idx(sqName); return this.legal().filter(m => m.from === s); }
+    san(m, moves) {
+      moves = moves || this.legal();
+      let s;
+      if (m.flag === 'k') s = 'O-O'; else if (m.flag === 'q') s = 'O-O-O';
+      else {
+        const t = m.piece.toUpperCase();
+        if (t === 'P') s = (m.captured ? name(m.from)[0] + 'x' : '') + name(m.to) + (m.promo ? '=' + m.promo.toUpperCase() : '');
+        else {
+          const amb = moves.filter(o => o.piece === m.piece && o.to === m.to && o.from !== m.from);
+          let d = '';
+          if (amb.length) {
+            const sameFile = amb.some(o => (o.from & 7) === (m.from & 7)), sameRank = amb.some(o => (o.from >> 3) === (m.from >> 3));
+            if (!sameFile) d = name(m.from)[0]; else if (!sameRank) d = name(m.from)[1]; else d = name(m.from);
+          }
+          s = t + d + (m.captured ? 'x' : '') + name(m.to);
+        }
+      }
+      this.make(m);
+      if (this.inCheck()) s += this.legal().length ? '+' : '#';
+      this.unmake();
+      return s;
+    }
+    // public move: accepts {from:'e2',to:'e4',promo:'q'} or 'e2e4' / 'e7e8q'
+    move(mv) {
+      if (typeof mv === 'string') mv = { from: mv.slice(0,2), to: mv.slice(2,4), promo: mv[4] };
+      const moves = this.legal();
+      const f = idx(mv.from), t = idx(mv.to);
+      const m = moves.find(o => o.from === f && o.to === t && (!o.promo || o.promo.toLowerCase() === (mv.promo || 'q').toLowerCase()));
+      if (!m) return null;
+      const san = this.san(m, moves);
+      const fenBefore = this.fen();
+      this.make(m);
+      const rec = { from: name(m.from), to: name(m.to), piece: m.piece, captured: m.captured, promo: m.promo, flag: m.flag, san, uci: name(m.from)+name(m.to)+(m.promo ? m.promo.toLowerCase() : ''), fenBefore, fenAfter: this.fen(), color: colorOf(m.piece) };
+      this.hist.push(rec);
+      const k = this.key(); this.reps[k] = (this.reps[k] || 0) + 1;
+      return rec;
+    }
+    undo() {
+      if (!this.hist.length) return null;
+      const k = this.key(); this.reps[k]--;
+      this.unmake(); return this.hist.pop();
+    }
+    insufficient() {
+      const pcs = this.b.filter(p => p && p.toLowerCase() !== 'k');
+      if (!pcs.length) return true;
+      if (pcs.length === 1 && 'nNbB'.includes(pcs[0])) return true;
+      if (pcs.every(p => 'bB'.includes(p))) {
+        const colors = new Set(); this.b.forEach((p, i) => { if (p && 'bB'.includes(p)) colors.add(((i >> 3) + (i & 7)) & 1); });
+        return colors.size === 1;
+      }
+      return false;
+    }
+    status() {
+      const moves = this.legal(), check = this.inCheck();
+      if (!moves.length) return check ? { over: true, result: this.turn === 'w' ? '0-1' : '1-0', reason: 'checkmate', check } : { over: true, result: '1/2-1/2', reason: 'stalemate', check };
+      if (this.insufficient()) return { over: true, result: '1/2-1/2', reason: 'insufficient material', check };
+      if (this.half >= 100) return { over: true, result: '1/2-1/2', reason: '50-move rule', check };
+      if (this.reps[this.key()] >= 3) return { over: true, result: '1/2-1/2', reason: 'threefold repetition', check };
+      return { over: false, check };
+    }
+    board() { return this.b.slice(); }
+    pgn() {
+      let s = '';
+      this.hist.forEach((h, i) => {
+        const moveNo = Math.floor(i / 2) + 1;
+        if (i === 0 && h.color === 'b') s += moveNo + '... ';
+        else if (h.color === 'w') s += moveNo + '. ';
+        s += h.san + ' ';
+      });
+      return s.trim();
+    }
+    material() {
+      const v = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }; let w = 0, bl = 0;
+      for (const p of this.b) if (p) { if (colorOf(p) === 'w') w += v[p.toLowerCase()]; else bl += v[p]; }
+      return { w, b: bl };
+    }
+    perft(d) {
+      if (d === 0) return 1; let n = 0;
+      for (const m of this.legal()) { this.make(m); n += this.perft(d - 1); this.unmake(); }
+      return n;
+    }
+  }
+
+  /* ---------- evaluation + search ---------- */
+  const VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
+  // piece-square tables from white's perspective, index 0 = a8
+  const PST = {
+    p: [0,0,0,0,0,0,0,0, 50,50,50,50,50,50,50,50, 10,10,20,30,30,20,10,10, 5,5,10,25,25,10,5,5, 0,0,0,20,20,0,0,0, 5,-5,-10,0,0,-10,-5,5, 5,10,10,-20,-20,10,10,5, 0,0,0,0,0,0,0,0],
+    n: [-50,-40,-30,-30,-30,-30,-40,-50, -40,-20,0,0,0,0,-20,-40, -30,0,10,15,15,10,0,-30, -30,5,15,20,20,15,5,-30, -30,0,15,20,20,15,0,-30, -30,5,10,15,15,10,5,-30, -40,-20,0,5,5,0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50],
+    b: [-20,-10,-10,-10,-10,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,10,10,5,0,-10, -10,5,5,10,10,5,5,-10, -10,0,10,10,10,10,0,-10, -10,10,10,10,10,10,10,-10, -10,5,0,0,0,0,5,-10, -20,-10,-10,-10,-10,-10,-10,-20],
+    r: [0,0,0,0,0,0,0,0, 5,10,10,10,10,10,10,5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, -5,0,0,0,0,0,0,-5, 0,0,0,5,5,0,0,0],
+    q: [-20,-10,-10,-5,-5,-10,-10,-20, -10,0,0,0,0,0,0,-10, -10,0,5,5,5,5,0,-10, -5,0,5,5,5,5,0,-5, 0,0,5,5,5,5,0,-5, -10,5,5,5,5,5,0,-10, -10,0,5,0,0,0,0,-10, -20,-10,-10,-5,-5,-10,-10,-20],
+    k: [-30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10, 20,20,0,0,0,0,20,20, 20,30,10,0,0,10,30,20],
+    ke: [-50,-40,-30,-20,-20,-30,-40,-50, -30,-20,-10,0,0,-10,-20,-30, -30,-10,20,30,30,20,-10,-30, -30,-10,30,40,40,30,-10,-30, -30,-10,30,40,40,30,-10,-30, -30,-10,20,30,30,20,-10,-30, -30,-30,0,0,0,0,-30,-30, -50,-30,-30,-30,-30,-30,-30,-50]
+  };
+  function evaluate(g) { // from side-to-move perspective
+    let s = 0, nonPawn = 0;
+    for (const p of g.b) if (p && !'pPkK'.includes(p)) nonPawn += VAL[p.toLowerCase()];
+    const endgame = nonPawn <= 1300;
+    for (let i = 0; i < 64; i++) {
+      const p = g.b[i]; if (!p) continue;
+      const t = p.toLowerCase(), w = p !== t;
+      const sq = w ? i : (7 - (i >> 3)) * 8 + (i & 7);
+      const tab = t === 'k' && endgame ? PST.ke : PST[t];
+      const v = VAL[t] + tab[sq];
+      s += w ? v : -v;
+    }
+    return g.turn === 'w' ? s : -s;
+  }
+  const MATE = 100000;
+  function order(moves) {
+    return moves.sort((a, b) => score(b) - score(a));
+    function score(m) { let s = 0; if (m.captured) s += 10 * VAL[m.captured.toLowerCase()] - VAL[m.piece.toLowerCase()] + 1000; if (m.promo) s += 800; return s; }
+  }
+  function search(g, opts) {
+    opts = opts || {};
+    const depth = opts.depth || 2, maxNodes = opts.maxNodes || 200000;
+    let nodes = 0;
+    function qs(alpha, beta, qd) {
+      nodes++;
+      const stand = evaluate(g);
+      if (stand >= beta) return beta;
+      if (stand > alpha) alpha = stand;
+      if (qd > 6 || nodes > maxNodes) return alpha;
+      for (const m of order(g.legal(true))) {
+        g.make(m); const sc = -qs(-beta, -alpha, qd + 1); g.unmake();
+        if (sc >= beta) return beta;
+        if (sc > alpha) alpha = sc;
+      }
+      return alpha;
+    }
+    function ab(d, alpha, beta, ply) {
+      nodes++;
+      const moves = g.legal();
+      if (!moves.length) return g.inCheck() ? -MATE + ply : 0;
+      if (g.half >= 100) return 0;
+      if (d <= 0) return qs(alpha, beta, 0);
+      for (const m of order(moves)) {
+        g.make(m); const sc = -ab(d - 1, -beta, -alpha, ply + 1); g.unmake();
+        if (sc >= beta) return beta;
+        if (sc > alpha) alpha = sc;
+      }
+      return alpha;
+    }
+    const root = order(g.legal());
+    const scored = [];
+    let best = null, bestScore = -Infinity;
+    for (const m of root) {
+      g.make(m); const sc = -ab(depth - 1, -MATE - 1, MATE + 1, 1); g.unmake();
+      scored.push({ m, sc });
+      if (sc > bestScore) { bestScore = sc; best = m; }
+    }
+    return { best, score: bestScore, scored, nodes };
+  }
+  // pick a move for the AI with a strength setting
+  function aiMove(g, level) {
+    const cfg = { 1: { depth: 1, noise: 120 }, 2: { depth: 2, noise: 35 }, 3: { depth: 3, noise: 0 } }[level] || { depth: 2, noise: 35 };
+    const r = search(g, { depth: cfg.depth, maxNodes: 400000 });
+    if (!r.best) return null;
+    let pick = r.best;
+    if (cfg.noise) {
+      const cands = r.scored.filter(x => x.sc > r.score - cfg.noise && Math.abs(x.sc) < MATE - 1000);
+      if (cands.length && Math.abs(r.score) < MATE - 1000) pick = cands[Math.floor(Math.random() * cands.length)].m;
+    }
+    return name(pick.from) + name(pick.to) + (pick.promo ? pick.promo.toLowerCase() : '');
+  }
+  function uciOf(m) { return name(m.from) + name(m.to) + (m.promo ? m.promo.toLowerCase() : ''); }
+  return { Game, START, name, idx, colorOf, search, aiMove, evaluate, uciOf, MATE, VAL };
+})();
+if (typeof module !== 'undefined') module.exports = Chess;
+
+/* ============ SANKOFA CONTENT (static MVP dataset; shaped like future backend entities) ============ */
+const DATA = {
+  levels: [
+    { n: 1, name: 'Seed', xp: 0 }, { n: 2, name: 'Learner', xp: 100 }, { n: 3, name: 'Builder', xp: 250 },
+    { n: 4, name: 'Strategist', xp: 500 }, { n: 5, name: 'Challenger', xp: 900 }, { n: 6, name: 'Competitor', xp: 1400 },
+    { n: 7, name: 'Master', xp: 2000 }
+  ],
+  puzzles: [
+    { id: 'p01', title: 'The oldest trap', theme: 'Arabian mate', difficulty: 'Beginner', rating: 700, fen: '7k/1R6/5N2/8/8/8/8/6K1 w - - 0 1', solution: ['b7h7'], mate: true,
+      hint: 'Your knight already guards two key squares next to the king.', idea: 'Rook and knight working together: the knight protects the rook and seals g8.' },
+    { id: 'p02', title: 'Back rank', theme: 'Back-rank mate', difficulty: 'Beginner', rating: 650, fen: '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1', solution: ['d1d8'], mate: true,
+      hint: 'Black’s own pawns are boxing the king in.', idea: 'A king with no escape square on the back rank is vulnerable to any rook or queen check.' },
+    { id: 'p03', title: 'Smothered', theme: 'Smothered mate', difficulty: 'Beginner', rating: 800, fen: '6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1', solution: ['g5f7'], mate: true,
+      hint: 'Only one piece can check a king that is surrounded by its own army.', idea: 'The knight is the only piece that jumps — a king buried by its own pieces cannot escape its check.' },
+    { id: 'p04', title: 'Four-move lesson', theme: 'Weak f7', difficulty: 'Beginner', rating: 600, fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4', solution: ['h5f7'], mate: true,
+      hint: 'Which black square is defended only by the king?', idea: 'f7 is guarded only by the king at the start. Queen plus bishop on it is deadly.' },
+    { id: 'p05', title: 'The ladder', theme: 'Two-rook mate', difficulty: 'Beginner', rating: 550, fen: 'k7/7R/8/8/8/8/8/6RK w - - 0 1', solution: ['g1g8'], mate: true,
+      hint: 'One rook already holds the seventh rank.', idea: 'Rooks take turns controlling ranks: one cuts off, the other delivers mate.' },
+    { id: 'p06', title: 'Royal fork', theme: 'Knight fork', difficulty: 'Intermediate', rating: 1000, fen: 'r3k3/8/8/1N6/8/8/7P/4K3 w - - 0 1', solution: ['b5c7', 'e8d7', 'c7a8'],
+      hint: 'Look for a knight jump that hits the king and something valuable at once.', idea: 'A check plus an attack on a second piece: the opponent can only answer one.' },
+    { id: 'p07', title: 'Pawn with a purpose', theme: 'Pawn fork', difficulty: 'Beginner', rating: 750, fen: '4k3/8/3n1b2/8/3PP3/8/8/4K3 w - - 0 1', solution: ['e4e5', 'd6c4', 'e5f6'],
+      hint: 'Even the smallest piece can attack two at once.', idea: 'Pawn forks are cheap and powerful: a pawn attacking two pieces always wins material.' },
+    { id: 'p08', title: 'Hidden power', theme: 'Discovered attack', difficulty: 'Intermediate', rating: 1150, fen: '8/4k1q1/8/5P2/3N4/8/8/B3K3 w - - 0 1', solution: ['d4c6', 'e7d6', 'a1g7'],
+      hint: 'Something is standing in your bishop’s way. Move it with tempo.', idea: 'Move one piece to give check, and the piece behind it strikes.' },
+    { id: 'p09', title: 'Through the king', theme: 'Skewer', difficulty: 'Intermediate', rating: 1100, fen: '8/8/q2k4/8/8/8/6R1/7K w - - 0 1', solution: ['g2g6', 'd6d5', 'g6a6'],
+      hint: 'Line up your rook with the king and what stands behind it.', idea: 'A skewer attacks a valuable piece first; when it moves, you take what was behind.' },
+    { id: 'p10', title: 'Queen offering', theme: 'Deflection', difficulty: 'Advanced', rating: 1500, fen: 'r1b2k1r/ppp1bppp/8/1B1Q4/5q2/2P5/PPP2PPP/R3R1K1 w - - 1 1', solution: ['d5d8', 'e7d8', 'e1e8'],
+      hint: 'Which defender stops your rook from reaching the back rank?', idea: 'Sacrifice to drag a defender away from the square that matters.' },
+    { id: 'p11', title: 'Double duty', theme: 'Double attack', difficulty: 'Intermediate', rating: 950, fen: 'r3k3/8/8/8/8/3Q4/8/4K3 w - - 0 1', solution: ['d3e4', 'e8d7', 'e4a8'],
+      hint: 'Find a queen move that checks and hits the corner.', idea: 'A queen checking the king along one line while attacking along another wins material.' }
+  ],
+  lessons: [
+    // Beginner
+    { id: 'b1', cat: 'Beginner', title: 'The chessboard', mins: 3,
+      body: ['The board has 64 squares in 8 files (a–h) and 8 ranks (1–8). Every square has a name, like e4.', 'White always starts, and pawns move forward one square — or two on their very first move.'],
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', task: 'Move the e-pawn two squares forward to e4.', accept: ['e2e4'] },
+    { id: 'b2', cat: 'Beginner', title: 'The pieces', mins: 4,
+      body: ['Rooks move in straight lines. Bishops move diagonally. The queen does both. The king moves one square in any direction.', 'The knight is special: it moves in an L-shape and is the only piece that can jump over others.'],
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', task: 'Jump the g1 knight to f3.', accept: ['g1f3'] },
+    { id: 'b3', cat: 'Beginner', title: 'Legal moves and captures', mins: 4,
+      body: ['You capture by moving onto a square occupied by an opponent’s piece. The captured piece leaves the board.', 'Before every move, ask: is anything of theirs undefended?'],
+      fen: '4k3/8/8/3b4/8/8/8/3RK3 w - - 0 1', task: 'Capture the undefended bishop with your rook.', accept: ['d1d5'] },
+    { id: 'b4', cat: 'Beginner', title: 'Check and checkmate', mins: 5,
+      body: ['Check means the king is attacked. The player in check must escape it immediately.', 'Checkmate is a check with no escape — the game ends.'],
+      fen: '6k1/R7/8/8/8/8/8/1R4K1 w - - 0 1', task: 'Deliver checkmate in one move.', mate: true },
+    { id: 'b5', cat: 'Beginner', title: 'Castling', mins: 4,
+      body: ['Castling moves your king two squares toward a rook, and the rook jumps to the other side of it. It tucks the king away and activates the rook.', 'You can’t castle out of check, through an attacked square, or after the king or that rook has moved.'],
+      fen: 'r3k2r/pppq1ppp/2npbn2/4p3/2B1P3/2NP1N2/PPP2PPP/R2QK2R w KQkq - 0 1', task: 'Castle kingside: move the king from e1 to g1.', accept: ['e1g1'] },
+    { id: 'b6', cat: 'Beginner', title: 'Opening principles', mins: 5,
+      body: ['In the opening: control the centre, develop knights and bishops, and castle early.', 'Knights usually belong on f3 and c3 — pointing at the centre, not the edge.'],
+      fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2', task: 'Develop a knight toward the centre.', accept: ['g1f3', 'b1c3'] },
+    // Strategy
+    { id: 's1', cat: 'Strategy', title: 'Control the centre', mins: 5,
+      body: ['The four central squares — d4, e4, d5, e5 — are the high ground. Pieces placed near them reach more of the board.', 'Claiming the centre with pawns gives your pieces room to breathe.'],
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', task: 'Place a pawn in the centre with your first move.', accept: ['e2e4', 'd2d4'] },
+    { id: 's2', cat: 'Strategy', title: 'Develop your pieces', mins: 5,
+      body: ['A piece still on its starting square is a soldier who hasn’t joined the fight.', 'Bring out a new piece with nearly every opening move. Don’t move the same piece twice without a reason.'],
+      fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3', task: 'Develop a new minor piece to an active square.', accept: ['f1c4', 'f1b5', 'b1c3'] },
+    { id: 's3', cat: 'Strategy', title: 'King safety', mins: 5,
+      body: ['A king in the centre is a target once the position opens. Castle before you attack.', 'Keep the pawns in front of your castled king where they are unless you have a clear reason.'],
+      fen: 'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4', task: 'Get your king to safety.', accept: ['e1g1'] },
+    { id: 's4', cat: 'Strategy', title: 'Pawn structure', mins: 6,
+      body: ['Pawns can’t move backwards, so every pawn decision is permanent.', 'When you have a choice of recapture, capturing toward the centre usually keeps a healthier structure.'],
+      fen: 'r1bqkb1r/pppp1ppp/8/4p3/4P3/2n5/PPPP1PPP/R1BQKBNR w KQkq - 0 5', task: 'Recapture the knight on c3 — toward the centre.', accept: ['b2c3'] },
+    { id: 's5', cat: 'Strategy', title: 'Space', mins: 5,
+      body: ['Advanced pawns claim territory. The side with more space has easier manoeuvres; the cramped side struggles to coordinate.', 'Space is only an advantage if you can support your advanced pawns.'],
+      fen: 'rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3', task: 'Gain space by advancing your e-pawn.', accept: ['e4e5'] },
+    { id: 's6', cat: 'Strategy', title: 'Exchanges', mins: 5,
+      body: ['When you are ahead in material, trade pieces. Every exchange makes your extra material count for more.', 'When you are behind, avoid trades and look for complications.'],
+      fen: '3r2k1/5pp1/7p/8/8/8/5PPP/R2R2K1 w - - 0 1', task: 'You are a rook up. Offer the trade.', accept: ['d1d8'] },
+    // Tactics
+    { id: 't1', cat: 'Tactics', title: 'Fork', mins: 4,
+      body: ['A fork is one piece attacking two targets at once. Knights are the classic forking piece.', 'The most powerful forks include a check, so the opponent has no time to save the other piece.'],
+      fen: 'r3k3/8/8/1N6/8/8/7P/4K3 w - - 0 1', task: 'Fork the king and rook.', accept: ['b5c7'] },
+    { id: 't2', cat: 'Tactics', title: 'Pin', mins: 4,
+      body: ['A pin freezes a piece because moving it would expose something more valuable behind it.', 'If the piece behind is the king, the pinned piece cannot legally move at all.'],
+      fen: '4k3/3n4/8/8/8/8/8/4KB2 w - - 0 1', task: 'Pin the knight to the king.', accept: ['f1b5'] },
+    { id: 't3', cat: 'Tactics', title: 'Skewer', mins: 4,
+      body: ['A skewer is a pin in reverse: the valuable piece is in front, and when it moves you take the piece behind.'],
+      fen: '8/8/q2k4/8/8/8/6R1/7K w - - 0 1', task: 'Skewer the king and queen.', accept: ['g2g6'] },
+    { id: 't4', cat: 'Tactics', title: 'Discovered attack', mins: 5,
+      body: ['When one piece moves out of the way, the piece behind it attacks. If the moving piece gives check too, it is a discovered attack with check.'],
+      fen: '8/4k1q1/8/5P2/3N4/8/8/B3K3 w - - 0 1', task: 'Move the knight with check to uncover your bishop.', accept: ['d4c6'] },
+    { id: 't5', cat: 'Tactics', title: 'Double attack', mins: 4,
+      body: ['The queen can attack in eight directions. Combine a check with a second threat and something falls.'],
+      fen: 'r3k3/8/8/8/8/3Q4/8/4K3 w - - 0 1', task: 'Check the king and attack the rook in one move.', accept: ['d3e4'] },
+    { id: 't6', cat: 'Tactics', title: 'Checkmate patterns', mins: 5,
+      body: ['Strong players don’t calculate every mate — they recognise patterns. The back-rank mate is one of the most common in real games.', 'Give your own king an escape square (called luft) to avoid it.'],
+      fen: '6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1', task: 'Find the back-rank mate.', mate: true },
+    // Endgame
+    { id: 'e1', cat: 'Endgame', title: 'King and pawn', mins: 5,
+      body: ['The rule of the square: draw a square from the pawn to the promotion rank. If the enemy king can’t step inside it, the pawn runs through alone.'],
+      fen: '8/8/8/8/k7/8/7P/7K w - - 0 1', task: 'The king is outside the square. Push the pawn as far as you can.', accept: ['h2h4'] },
+    { id: 'e2', cat: 'Endgame', title: 'Opposition', mins: 6,
+      body: ['When kings face each other with one square between them, the player who does not have to move has the opposition.', 'Taking the opposition forces the enemy king to give way.'],
+      fen: '8/8/4k3/8/8/4K3/4P3/8 w - - 0 1', task: 'Take the opposition by stepping your king forward.', accept: ['e3e4'] },
+    { id: 'e3', cat: 'Endgame', title: 'Basic rook endings', mins: 6,
+      body: ['A rook is at its best cutting off the enemy king. A king kept away from your pawn cannot stop it.'],
+      fen: '8/8/8/8/2k5/8/4P3/R3K3 w - - 0 1', task: 'Cut the black king off along the d-file.', accept: ['a1d1'] }
+  ],
+  stories: [
+    { id: 'st1', title: 'Go back and get it', cat: 'Philosophy', read: 3, symbol: 'sankofa',
+      dek: 'The Akan word behind this platform, and why it fits a game built on memory.',
+      body: [
+        'Sankofa comes from the Akan people of Ghana. The word is usually explained as a joining of san (return), ko (go) and fa (fetch): go back and get it.',
+        'It is tied to a proverb: “Se wo were fi na wosankofa a yenkyi” — it is not wrong to go back for that which you have forgotten.',
+        'The Adinkra symbol shows a bird whose feet face forward while its head turns back to pick up an egg from its back. The egg is the knowledge of the past; the forward-facing feet say that you keep moving.',
+        'Chess players live this idea every day. The games you lost, the patterns you almost saw, the openings that went wrong — reviewing them is how you get stronger. Every analysis screen in Sankofa Chess is a small act of sankofa.'
+      ],
+      source: 'W. Bruce Willis, The Adinkra Dictionary (1998); Akan oral tradition.' },
+    { id: 'st2', title: 'The wisdom knot', cat: 'Adinkra', read: 3, symbol: 'nyansapo',
+      dek: 'Adinkra symbols carry whole ideas in a single shape. One of them describes a strong chess player.',
+      body: [
+        'Adinkra symbols come from the Asante (Ashanti) region of Ghana, where they were traditionally stamped onto cloth. Each symbol stands for a proverb, a value or a historical idea.',
+        'Nyansapo — the wisdom knot — is associated with the idea that a wise person can choose the best means to reach a goal. That is close to a definition of good chess: not the most brilliant move, but the right one for the position.',
+        'Dwennimmen, the ram’s horns, stands for strength combined with humility. Anyone who has lost a won game through overconfidence knows why that pairing matters.'
+      ],
+      source: 'W. Bruce Willis, The Adinkra Dictionary (1998).' },
+    { id: 'st3', title: 'Senterej: chess at the Ethiopian court', cat: 'History', read: 4, symbol: 'board',
+      dek: 'Long before online blitz, Ethiopia had its own version of the game.',
+      body: [
+        'Senterej is a traditional Ethiopian form of chess descended from the older shatranj family of games. It was played in Ethiopia for centuries, including at the royal court.',
+        'One of its best-known features is its opening: rather than strictly alternating single moves from the first turn, players could develop freely at their own pace until the first capture, after which play alternated normally.',
+        'That opening rewards exactly what modern coaches teach: quick, purposeful development. Senterej faded in the twentieth century as international rules spread, but it remains part of Africa’s chess story.'
+      ],
+      source: 'H. J. R. Murray, A History of Chess (1913); Richard Pankhurst’s writings on Ethiopian games.' },
+    { id: 'st4', title: 'Oware and the art of counting ahead', cat: 'Strategy traditions', read: 3, symbol: 'oware',
+      dek: 'A West African board game that trains the same muscles as chess calculation.',
+      body: [
+        'Oware is a mancala game played across Ghana and West Africa; the Yoruba version in Nigeria is known as ayo. Two players sow seeds around a board of pits and capture by landing on the right count.',
+        'Good oware players count many sowings ahead and set up captures their opponent doesn’t see coming. It is calculation without pieces — a skill that transfers directly to chess tactics.',
+        'Games like oware remind us that strategic thinking has deep roots on the continent. Chess is one vehicle among many.'
+      ],
+      source: 'General ethnographic sources on mancala games; verify specifics before publishing.' },
+    { id: 'st5', title: 'Africa’s modern masters', cat: 'Innovators', read: 4, symbol: 'crown',
+      dek: 'The players who put African chess on the world map.',
+      body: [
+        'Egypt’s Bassem Amin is widely regarded as Africa’s strongest player of recent years and a multiple African champion.',
+        'Zambia’s Amon Simutowe became one of the first grandmasters from sub-Saharan Africa, and South Africa’s Kenny Solomon became the country’s first grandmaster in 2014.',
+        'Uganda’s Phiona Mutesi learned the game in the Katwe neighbourhood of Kampala and represented her country at Chess Olympiads; her story was told in the 2016 film Queen of Katwe.',
+        'Each of them started somewhere ordinary. The next one could be starting today.'
+      ],
+      source: 'FIDE records; public reporting. Verify dates before publishing.' },
+    { id: 'st6', title: 'The oldest trap on the board', cat: 'History', read: 3, symbol: 'arabian',
+      dek: 'A rook and knight pattern that has been winning games for over a thousand years.',
+      body: [
+        'The Arabian mate — rook and knight trapping a king in the corner — is one of the oldest checkmate patterns on record, found in early Arabic writings on shatranj, the ancestor of modern chess.',
+        'Chess itself travelled through the Islamic world and across North Africa into Spain and the rest of Europe. The game Europe inherited had already passed through many African and Arab hands.',
+        'You can solve this exact pattern in today’s puzzle set. Old wisdom still wins games.'
+      ],
+      source: 'H. J. R. Murray, A History of Chess (1913).' }
+  ],
+  // demo leaderboard (seeded; to be replaced by server-side ratings)
+  players: [
+    { u: 'kwame_opens', c: 'GH', r: 1842, l: 7 }, { u: 'adaeze.k', c: 'NG', r: 1795, l: 7 }, { u: 'nairobi_knight', c: 'KE', r: 1760, l: 6 },
+    { u: 'rook_of_rabat', c: 'MA', r: 1712, l: 6 }, { u: 'tamale_tactics', c: 'GH', r: 1655, l: 6 }, { u: 'zanele_z', c: 'ZA', r: 1610, l: 5 },
+    { u: 'bruxelles_b', c: 'BE', r: 1588, l: 5 }, { u: 'kofi_endgames', c: 'GH', r: 1540, l: 5 }, { u: 'lagos_lion', c: 'NG', r: 1497, l: 5 },
+    { u: 'addis_senterej', c: 'ET', r: 1463, l: 4 }, { u: 'mariama.b', c: 'SN', r: 1420, l: 4 }, { u: 'antwerp_ama', c: 'BE', r: 1388, l: 4 },
+    { u: 'kigali_queen', c: 'RW', r: 1342, l: 4 }, { u: 'yaw_forks', c: 'GH', r: 1301, l: 3 }, { u: 'dakar_dev', c: 'SN', r: 1255, l: 3 },
+    { u: 'kl_castles', c: 'MY', r: 1214, l: 3 }, { u: 'abena_plays', c: 'GH', r: 1170, l: 3 }, { u: 'accra_pawn', c: 'GH', r: 1088, l: 2 },
+    { u: 'london_luft', c: 'GB', r: 1046, l: 2 }, { u: 'new_seed_22', c: 'NG', r: 902, l: 1 }
+  ],
+  countries: { GH: 'Ghana', NG: 'Nigeria', KE: 'Kenya', ZA: 'South Africa', ET: 'Ethiopia', SN: 'Senegal', MA: 'Morocco', EG: 'Egypt', RW: 'Rwanda', UG: 'Uganda', CI: 'Côte d’Ivoire', CM: 'Cameroon', ZM: 'Zambia', BE: 'Belgium', NL: 'Netherlands', FR: 'France', GB: 'United Kingdom', DE: 'Germany', US: 'United States', CA: 'Canada', MY: 'Malaysia', OT: 'Another country' },
+  sankofaDaily: [
+    { q: 'It is not wrong to go back for that which you have forgotten.', t: 'Review your last loss before starting a new game.' },
+    { q: 'A wise person chooses the best means to reach the goal.', t: 'Before each move, name your plan in one sentence.' },
+    { q: 'Strength and humility travel together.', t: 'Respect every threat, even from a lower-rated opponent.' },
+    { q: 'The river is filled by many small streams.', t: 'Three puzzles a day compound into pattern recognition.' },
+    { q: 'Patience can cook a stone.', t: 'In a better position, improve your worst piece before attacking.' },
+    { q: 'When you follow in the path of your father, you learn to walk like him.', t: 'Replay a classic game move by move and predict each move.' },
+    { q: 'One head does not hold council.', t: 'Ask the coach to explain the critical moment of your last game.' }
+  ]
+};
+if (typeof module !== 'undefined') module.exports = DATA;
+
+/* ============ SANKOFA APP: core ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const todayKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function weekKey(d = new Date()) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return t.getUTCFullYear() + '-W' + pad(Math.ceil(((t - y0) / 864e5 + 1) / 7));
+}
+const dayIndex = () => Math.floor(new Date(todayKey()).getTime() / 864e5);
+const flag = cc => (!cc || cc === 'OT') ? '🌍' : String.fromCodePoint(...[...cc].map(c => 127397 + c.charCodeAt(0)));
+const fmtTime = ms => { if (ms == null) return '∞'; ms = Math.max(0, ms); const s = Math.ceil(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}:${pad(s % 60)}` : (ms < 10000 ? (ms / 1000).toFixed(1) : `0:${pad(s)}`); };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const PIECE_NAMES = { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' };
+
+/* ---------- SVG: pieces, logo, icons ---------- */
+function pieceSVG(p) {
+  const w = p === p.toUpperCase(), t = p.toLowerCase();
+  const f = w ? 'var(--pw-fill)' : 'var(--pb-fill)', s = w ? 'var(--pw-stroke)' : 'var(--pb-stroke)', d = w ? 'var(--pw-stroke)' : 'var(--pb-detail)';
+  const base = `<rect x="10" y="35.5" width="25" height="4.6" rx="1.8"/>`;
+  const shapes = {
+    p: `<circle cx="22.5" cy="12.8" r="5.3"/><rect x="16.5" y="18.6" width="12" height="3.2" rx="1.6"/><path d="M17.6 21.8c0 5.4-2 9.4-3.6 13.7h17c-1.6-4.3-3.6-8.3-3.6-13.7z"/>`,
+    r: `<path d="M13.5 8.6h4.2v3.2h3v-3.2h3.6v3.2h3v-3.2h4.2v8.4l-2.6 2.1H16.1l-2.6-2.1z"/><path d="M16.2 19.1h12.6l1.5 16.4H14.7z"/>`,
+    b: `<circle cx="22.5" cy="5.6" r="2.2"/><path d="M22.5 8.2c5.2 3.6 7.8 8.8 5.2 13.9H17.3c-2.6-5.1 0-10.3 5.2-13.9z"/><rect x="16" y="22.1" width="13" height="3.1" rx="1.55"/><path d="M18 25.2c0 4-1.5 7-3 10.3h15c-1.5-3.3-3-6.3-3-10.3z"/><path d="M24.8 12.3 21 17.2" stroke="${d}" fill="none" stroke-width="1.6" stroke-linecap="round"/>`,
+    n: `<path d="M15 35.5c.5-5.5 3.5-8.5 6.5-11-2.5 0-6.5 1-9-.1-2.6-1-3-3.4-2-5.4l5-7.5 1-4.5 3 2.5c8-1.5 14 4.5 13.5 14.5l-1 11.5z"/><circle cx="16.6" cy="14.6" r="1.15" fill="${d}" stroke="none"/><path d="M24 11.4c4.4 2.6 6.4 7.6 6 14.6" stroke="${d}" fill="none" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>`,
+    q: `<circle cx="9.3" cy="11.8" r="2.2"/><circle cx="16" cy="8.8" r="2.2"/><circle cx="22.5" cy="7.4" r="2.2"/><circle cx="29" cy="8.8" r="2.2"/><circle cx="35.7" cy="11.8" r="2.2"/><path d="M10 13.4 14.3 26h16.4L35 13.4l-5.8 6.4-.7-9.3-4.4 8.8-1.6-9.2-1.6 9.2-4.4-8.8-.7 9.3z"/><rect x="13.6" y="26" width="17.8" height="3.1" rx="1.55"/><path d="M15.6 29.1 14 35.5h17l-1.6-6.4z"/>`,
+    k: `<path d="M21.3 2.8h2.4v3.4h3.1v2.4h-3.1v3.6h-2.4V8.6h-3.1V6.2h3.1z"/><path d="M13.1 22.6c-3.1-6.6 3.4-11.1 9.4-6.6 6-4.5 12.5 0 9.4 6.6z"/><rect x="13.6" y="22.6" width="17.8" height="3.1" rx="1.55"/><path d="M15.6 25.7 14 35.5h17l-1.6-9.8z"/>`
+  };
+  return `<svg viewBox="0 0 45 45" class="pc" aria-hidden="true"><g fill="${f}" stroke="${s}" stroke-width="${w ? 1.5 : 1.15}" stroke-linejoin="round">${shapes[t]}${base}</g></svg>`;
+}
+// Logo: a knight turned back toward the egg of knowledge, set on the twin spirals of the Sankofa heart
+function logoSVG(opts = {}) {
+  const fg = opts.fg || 'currentColor', egg = opts.egg || 'var(--gold)';
+  return `<svg viewBox="0 0 64 64" aria-hidden="true" ${opts.cls ? `class="${opts.cls}"` : ''}>
+    <g transform="translate(64 0) scale(-1 1)">
+      <path fill="${fg}" d="M20 50c.7-7.4 4.7-11.4 8.7-14.8-3.4 0-8.7 1.4-12.1-.1-3.5-1.4-4-4.6-2.7-7.3l6.7-10 1.3-6 4 3.3c10.7-2 18.7 6 18 19.4L42.6 50z"/>
+      <circle cx="22.1" cy="23.4" r="1.6" fill="var(--bg,#0F0F0F)"/>
+    </g>
+    <ellipse cx="47.5" cy="17.2" rx="4.3" ry="5.4" fill="${egg}" transform="rotate(18 47.5 17.2)"/>
+    <path d="M12 58c0-4 3-6 6-6s4 2.6 2.2 4.2M52 58c0-4-3-6-6-6s-4 2.6-2.2 4.2" fill="none" stroke="${fg}" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M18 53.5h28" stroke="${fg}" stroke-width="2.6" stroke-linecap="round"/>
+  </svg>`;
+}
+const ICONS = {
+  home: '<path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+  play: '<path d="M8.5 20h7M9.5 20l.8-5.5M14.5 20l-.8-5.5M8 14.5h8M9.5 14.5c-1.5-2-2-4.5-.5-6.5L12 4l3 4c1.5 2 1 4.5-.5 6.5"/>',
+  learn: '<path d="M3.5 6.5C6 5 9 5 12 6.8 15 5 18 5 20.5 6.5V19c-2.5-1.4-5.5-1.4-8.5.3-3-1.7-6-1.7-8.5-.3z"/><path d="M12 6.8v12.5"/>',
+  puzzle: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/><circle cx="16" cy="8" r="1.4" fill="currentColor"/>',
+  profile: '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.8 4-5.6 7.5-5.6s6.3 1.8 7.5 5.6"/>',
+  flame: '<path d="M12 21c-4 0-6.5-2.6-6.5-6.2 0-4.3 4-6.3 4.5-10.3 3 1.8 4.4 4.6 4.1 7.4 1-.6 1.7-1.7 1.9-3 1.6 1.6 2.5 3.8 2.5 5.9C18.5 18.4 16 21 12 21z"/>',
+  back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>', next: '<path d="M9.5 5.5 16 12l-6.5 6.5"/>', flip: '<path d="M7 4v14M7 18l-3-3M7 18l3-3M17 20V6M17 6l-3 3M17 6l3 3"/>',
+  first: '<path d="M16 5.5 9.5 12l6.5 6.5M6.5 5v14"/>', last: '<path d="M8 5.5l6.5 6.5L8 18.5M17.5 5v14"/>',
+  flag: '<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>', handshake: '<path d="M3 12l4-4 5 3 5-3 4 4-5 5-4-2-4 2z"/>', coach: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7"/>', book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>'
+};
+const icon = (n, cls = '') => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${ICONS[n]}</svg>`;
+function miniBoardSVG(fen, opts = {}) {
+  const b = new Chess.Game(fen).board(); const flip = opts.flip;
+  let s = `<svg viewBox="0 0 360 360" class="${opts.cls || ''}" role="img" aria-label="${esc(opts.label || 'Chess position')}">`;
+  for (let i = 0; i < 64; i++) {
+    const vi = flip ? 63 - i : i, r = Math.floor(i / 8), f = i % 8;
+    s += `<rect x="${f * 45}" y="${r * 45}" width="45" height="45" fill="${(r + f) % 2 ? 'var(--sq-dark)' : 'var(--sq-light)'}"/>`;
+    const p = b[vi];
+    if (p) s += `<g transform="translate(${f * 45} ${r * 45})">${pieceSVG(p).replace('<svg viewBox="0 0 45 45" class="pc" aria-hidden="true">', '').replace('</svg>', '')}</g>`;
+  }
+  return s + '</svg>';
+}
+const symbolArt = {
+  sankofa: () => logoSVG({ fg: 'var(--gold)', egg: 'var(--ivory)' }),
+  nyansapo: () => `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.2"><rect x="18" y="4" width="28" height="28" rx="14" transform="rotate(0)"/><rect x="18" y="32" width="28" height="28" rx="14"/><rect x="4" y="18" width="28" height="28" rx="14"/><rect x="32" y="18" width="28" height="28" rx="14"/></svg>`,
+  board: () => miniBoardSVG('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
+  arabian: () => miniBoardSVG('7k/7R/5N2/8/8/8/8/6K1 b - - 0 1'),
+  oware: () => `<svg viewBox="0 0 120 50" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="2" width="116" height="46" rx="23"/>${[0, 1, 2, 3, 4, 5].map(i => `<circle cx="${18 + i * 16.8}" cy="16" r="6.5"/><circle cx="${18 + i * 16.8}" cy="34" r="6.5"/>`).join('')}</svg>`,
+  crown: () => `<svg viewBox="0 0 45 45">${pieceSVG('Q').replace(/<svg[^>]*>|<\/svg>/g, '')}</svg>`
+};
+
+/* ---------- store: claude.ai db when available, device storage as cache ---------- */
+const LS_KEY = 'sankofa.chess.v1';
+const Store = {
+  p: null, db: null, uid: null, timer: null, onRemote: null,
+  readLocal() { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) { return null; } },
+  writeLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(this.p)); } catch (e) { } },
+  init() {
+    this.p = this.readLocal();
+    (async () => {
+      try {
+        if (typeof claude === 'undefined' || !claude.use) return;
+        const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+        if (!db || !user) return;
+        const id = await user.id(); if (!id) return;
+        this.db = db; this.uid = id;
+        const snap = await db.doc(`data/users/${id}/profile`).get();
+        if (snap.exists) {
+          const remote = JSON.parse(JSON.stringify(snap.data()));
+          if (!this.p || (remote.updated || 0) >= (this.p.updated || 0)) { this.p = remote; this.writeLocal(); this.onRemote && this.onRemote(); }
+          else this.push();
+        } else if (this.p) this.push();
+      } catch (e) { console.warn('db unavailable', e); }
+    })();
+  },
+  save() {
+    if (!this.p) return;
+    this.p.updated = Date.now(); this.writeLocal();
+    clearTimeout(this.timer); this.timer = setTimeout(() => this.push(), 700);
+  },
+  async push() {
+    if (!this.db || !this.p) return;
+    try { await this.db.doc(`data/users/${this.uid}/profile`).set(JSON.parse(JSON.stringify(this.p))); }
+    catch (e) { if (e && e.code === 'invalid_argument') this.db = null; console.warn('save failed', e); }
+  },
+  clear() {
+    this.p = null; try { localStorage.removeItem(LS_KEY); } catch (e) { }
+    if (this.db) this.db.doc(`data/users/${this.uid}/profile`).delete().catch(() => { });
+  }
+};
+async function hashPw(email, pw) {
+  const txt = email.toLowerCase().trim() + '::sankofa::' + pw;
+  try { const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''); }
+  catch (e) { let h = 0; for (const c of txt) h = (h * 31 + c.charCodeAt(0)) | 0; return 'x' + h; }
+}
+function newProfile(acc) {
+  const startRating = { Beginner: 800, Intermediate: 1200, Advanced: 1600 }[acc.level] || 800;
+  return {
+    v: 1, account: acc, session: true, onboarded: false, goal: null,
+    rating: startRating, peak: startRating, xp: 0, streak: 0, bestStreak: 0, lastActive: null,
+    stats: { games: 0, wins: 0, losses: 0, draws: 0 }, games: [],
+    pz: { solved: {}, attempts: 0, firstTry: 0, run: 0, bestRun: 0 },
+    lessons: {}, reviews: 0, coachQs: 0,
+    c: { day: todayKey(), dayPuzzles: 0, week: weekKey(), weekGames: 0, weekLessons: 0, lessonPending: false, lessonWin: false },
+    claimed: {}, created: Date.now(), updated: Date.now()
+  };
+}
+
+/* ---------- progression ---------- */
+const P = () => Store.p;
+function levelOf(xp) {
+  const L = DATA.levels; let cur = L[0];
+  for (const l of L) if (xp >= l.xp) cur = l;
+  const next = L.find(l => l.xp > xp) || null;
+  const pct = next ? Math.round(100 * (xp - cur.xp) / (next.xp - cur.xp)) : 100;
+  return { ...cur, next, pct };
+}
+function rollCounters() {
+  const p = P(); if (!p) return;
+  if (p.c.day !== todayKey()) { p.c.day = todayKey(); p.c.dayPuzzles = 0; }
+  if (p.c.week !== weekKey()) { p.c.week = weekKey(); p.c.weekGames = 0; p.c.weekLessons = 0; p.c.lessonPending = false; p.c.lessonWin = false; }
+}
+function touchStreak() {
+  const p = P(); const t = todayKey();
+  if (p.lastActive === t) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  p.streak = p.lastActive === todayKey(y) ? p.streak + 1 : 1;
+  p.bestStreak = Math.max(p.bestStreak, p.streak); p.lastActive = t;
+  if (p.streak > 1) toast(`${p.streak}-day streak`, 'flame');
+}
+function addXP(n, why) {
+  const p = P(); const before = levelOf(p.xp).n;
+  p.xp += n; const after = levelOf(p.xp);
+  toast(`+${n} XP <em>${esc(why)}</em>`);
+  if (after.n > before) setTimeout(() => toast(`Sankofa Level ${after.n}: ${after.name}`), 900);
+}
+const CHALLENGES = [
+  { id: 'daily-puzzles', type: 'Daily', title: 'Solve 3 puzzles', desc: 'Keep your pattern memory sharp.', target: 3, reward: 50, prog: p => p.c.dayPuzzles, period: () => todayKey(), go: '#/puzzles' },
+  { id: 'weekly-games', type: 'Weekly', title: 'Play 10 games', desc: 'Any time control, any opponent.', target: 10, reward: 150, prog: p => p.c.weekGames, period: () => weekKey(), go: '#/play' },
+  { id: 'learn-2', type: 'Learning', title: 'Complete 2 lessons', desc: 'Two new ideas this week.', target: 2, reward: 80, prog: p => p.c.weekLessons, period: () => weekKey(), go: '#/learn' },
+  { id: 'strategy-win', type: 'Strategy', title: 'Win a game after completing a lesson', desc: 'Learn it, then use it.', target: 1, reward: 100, prog: p => p.c.lessonWin ? 1 : 0, period: () => weekKey(), go: '#/learn' }
+];
+const chKey = ch => ch.id + ':' + ch.period();
+function challengeState(ch) {
+  const p = P(); const v = Math.min(ch.target, ch.prog(p));
+  return { v, done: v >= ch.target, claimed: !!p.claimed[chKey(ch)] };
+}
+function claimChallenge(id) {
+  const ch = CHALLENGES.find(c => c.id === id); const st = challengeState(ch);
+  if (!st.done || st.claimed) return;
+  P().claimed[chKey(ch)] = true; addXP(ch.reward, ch.title); Store.save();
+}
+const ACHIEVEMENTS = [
+  { id: 'first-win', ico: '🏅', name: 'First Victory', desc: 'Win your first game', test: p => p.stats.wins >= 1 },
+  { id: 'solver', ico: '🧠', name: 'Puzzle Solver', desc: 'Solve 5 puzzles', test: p => Object.keys(p.pz.solved).length >= 5 },
+  { id: 'streak7', ico: '🔥', name: '7 Day Streak', desc: 'Train 7 days in a row', test: p => p.bestStreak >= 7 },
+  { id: 'games50', ico: '♟', name: '50 Games', desc: 'Play 50 games', test: p => p.stats.games >= 50 },
+  { id: 'student', ico: '📖', name: 'Student', desc: 'Complete 5 lessons', test: p => Object.keys(p.lessons).length >= 5 },
+  { id: 'sankofa', ico: '🪶', name: 'Go Back and Get It', desc: 'Review a game with the coach', test: p => p.reviews >= 1 },
+  { id: 'sharp', ico: '⚡', name: 'Sharp Eye', desc: '5 puzzles right in a row', test: p => p.pz.bestRun >= 5 },
+  { id: 'strategist', ico: '👑', name: 'Strategist', desc: 'Reach Sankofa Level 4', test: p => levelOf(p.xp).n >= 4 }
+];
+function checkAchievements(prev) {
+  const p = P(); p.ach = p.ach || {};
+  for (const a of ACHIEVEMENTS) if (!p.ach[a.id] && a.test(p)) { p.ach[a.id] = Date.now(); setTimeout(() => toast(`${a.ico} Achievement: ${a.name}`), 1400); }
+}
+function puzzleAccuracy(p) { return p.pz.attempts ? Math.round(100 * p.pz.firstTry / p.pz.attempts) : null; }
+function winRate(p) { return p.stats.games ? Math.round(100 * p.stats.wins / p.stats.games) : null; }
+
+/* ---------- UI helpers ---------- */
+function toast(html, ic) {
+  let box = $('.toasts'); if (!box) { box = document.createElement('div'); box.className = 'toasts'; box.setAttribute('role', 'status'); document.body.appendChild(box); }
+  const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = html; box.appendChild(t);
+  setTimeout(() => { t.style.transition = 'opacity .3s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 320); }, 2600);
+}
+function modal(html, mount) {
+  const s = document.createElement('div'); s.className = 'scrim';
+  s.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(s);
+  const close = () => { s.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  s.addEventListener('click', e => { if (e.target === s) close(); });
+  mount && mount(s, close);
+  const f = s.querySelector('button, a, input'); f && f.focus();
+  return close;
+}
+
+/* ---------- Board component ---------- */
+class BoardView {
+  constructor(el, opts) {
+    this.el = el; this.o = Object.assign({ orientation: 'w', canMove: () => false, onMove: null, coords: true }, opts);
+    this.game = opts.game; this.sel = null; this.targets = []; this.last = null; this.hint = null; this.fenOverride = null;
+    el.classList.add('board-wrap');
+    el.innerHTML = `<div class="board" role="grid" aria-label="Chess board"></div>`;
+    this.boardEl = el.firstChild;
+    this.bindPointer();
+    this.render();
+  }
+  sqAt(i) { return this.o.orientation === 'w' ? i : 63 - i; }
+  setPosition(fen, last) { this.fenOverride = fen; this.last = last || null; this.sel = null; this.targets = []; this.render(); }
+  live() { this.fenOverride = null; this.render(); }
+  render() {
+    const g = this.fenOverride ? new Chess.Game(this.fenOverride) : this.game;
+    const b = g.board(); const chk = g.inCheck() ? g.kingSq(g.turn) : -1;
+    const can = !this.fenOverride && this.o.canMove(g.turn);
+    let html = '';
+    for (let i = 0; i < 64; i++) {
+      const s = this.sqAt(i), r = i >> 3, f = i & 7, name = Chess.name(s), p = b[s];
+      const cls = ['sq', (r + f) % 2 ? 'd' : 'l'];
+      if (this.last && (this.last.from === name || this.last.to === name)) cls.push('last');
+      if (this.sel === name) cls.push('sel');
+      if (s === chk) cls.push('check');
+      if (this.hint === name) cls.push('hint-sq');
+      if (can && p && Chess.colorOf(p) === g.turn) cls.push('can');
+      let inner = p ? pieceSVG(p) : '';
+      const t = this.targets.find(m => m.to === name);
+      if (t) inner += p ? '<i class="ring"></i>' : '<i class="dot"></i>';
+      if (this.o.coords) {
+        if (r === 7) inner += `<span class="co f">${name[0]}</span>`;
+        if (f === 0) inner += `<span class="co r">${name[1]}</span>`;
+      }
+      const label = `${name}${p ? ', ' + (Chess.colorOf(p) === 'w' ? 'white ' : 'black ') + PIECE_NAMES[p.toLowerCase()] : ''}`;
+      html += `<div class="${cls.join(' ')}" data-sq="${name}" role="gridcell" aria-label="${label}">${inner}</div>`;
+    }
+    this.boardEl.innerHTML = html;
+  }
+  select(name) {
+    const g = this.game; this.sel = name;
+    this.targets = g.movesFrom(name).map(m => ({ to: Chess.name(m.to), promo: !!m.promo }));
+    this.render();
+  }
+  clearSel() { this.sel = null; this.targets = []; this.render(); }
+  async tryMove(from, to) {
+    const t = this.targets.find(m => m.to === to); if (!t) return false;
+    let promo = null;
+    if (t.promo) { promo = await this.askPromo(this.game.turn); if (!promo) { this.clearSel(); return false; } }
+    this.sel = null; this.targets = [];
+    const ok = await this.o.onMove(from, to, promo);
+    this.render(); return ok;
+  }
+  askPromo(color) {
+    return new Promise(res => {
+      const o = document.createElement('div'); o.className = 'promo';
+      o.innerHTML = `<div class="opts" role="dialog" aria-label="Choose promotion piece">${'qrbn'.split('').map(p => `<button data-p="${p}" aria-label="${PIECE_NAMES[p]}">${pieceSVG(color === 'w' ? p.toUpperCase() : p)}</button>`).join('')}</div>`;
+      o.addEventListener('pointerdown', e => e.stopPropagation());
+      o.addEventListener('click', e => { const b = e.target.closest('button'); o.remove(); res(b ? b.dataset.p : null); });
+      this.el.appendChild(o);
+      o.querySelector('button').focus();
+    });
+  }
+  bindPointer() {
+    let drag = null;
+    const sqFromPoint = (x, y) => { const el = document.elementFromPoint(x, y); const sq = el && el.closest('.sq'); return sq && this.el.contains(sq) ? sq.dataset.sq : null; };
+    this.el.addEventListener('pointerdown', e => {
+      if (e.button > 0) return;
+      const sqEl = e.target.closest('.sq'); if (!sqEl || this.fenOverride) return;
+      const g = this.game, name = sqEl.dataset.sq; if (!this.o.canMove(g.turn)) return;
+      if (this.sel && this.targets.some(m => m.to === name)) { e.preventDefault(); this.tryMove(this.sel, name); return; }
+      const p = g.board()[Chess.idx(name)];
+      if (p && Chess.colorOf(p) === g.turn) {
+        e.preventDefault();
+        const wasSel = this.sel === name;
+        this.select(name);
+        const rect = this.el.getBoundingClientRect(); const size = rect.width / 8;
+        const gh = document.createElement('div'); gh.className = 'ghost'; gh.style.width = gh.style.height = size * 1.1 + 'px';
+        gh.innerHTML = pieceSVG(p); gh.style.left = e.clientX + 'px'; gh.style.top = e.clientY + 'px'; gh.style.display = 'none';
+        document.body.appendChild(gh);
+        drag = { from: name, x: e.clientX, y: e.clientY, gh, moved: false, wasSel };
+        try { this.el.setPointerCapture(e.pointerId); } catch (_) { }
+      } else this.clearSel();
+    });
+    this.el.addEventListener('pointermove', e => {
+      if (!drag) return;
+      if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) {
+        drag.moved = true; drag.gh.style.display = 'block';
+        const pc = this.boardEl.querySelector(`[data-sq="${drag.from}"] .pc`); if (pc) pc.style.opacity = '.25';
+      }
+      if (drag.moved) { drag.gh.style.left = e.clientX + 'px'; drag.gh.style.top = e.clientY + 'px'; }
+    });
+    const end = e => {
+      if (!drag) return; const d = drag; drag = null; d.gh.remove();
+      if (d.moved) {
+        const to = sqFromPoint(e.clientX, e.clientY);
+        if (to && to !== d.from && this.targets.some(m => m.to === to)) this.tryMove(d.from, to);
+        else this.render();
+      } else if (d.wasSel) this.clearSel();
+    };
+    this.el.addEventListener('pointerup', end);
+    this.el.addEventListener('pointercancel', () => { if (drag) { drag.gh.remove(); drag = null; this.render(); } });
+  }
+}
+
+/* ============ ANALYSIS + COACHING ============ */
+const AI = {
+  1: { name: 'Abena', label: 'Easy', rating: 800, blurb: 'Friendly. Leaves chances.' },
+  2: { name: 'Kwaku', label: 'Medium', rating: 1200, blurb: 'Solid club player.' },
+  3: { name: 'Nana', label: 'Hard', rating: 1600, blurb: 'The elder. Punishes mistakes.' }
+};
+const CLAMP = 1500;
+const clampSc = s => Math.max(-CLAMP, Math.min(CLAMP, s));
+function classify(loss) { return loss <= 20 ? 'best' : loss <= 60 ? 'good' : loss <= 120 ? 'inaccuracy' : loss <= 250 ? 'mistake' : 'blunder'; }
+const CLS_LABEL = { best: 'Best', good: 'Good', inaccuracy: 'Inaccuracy', mistake: 'Mistake', blunder: 'Blunder' };
+
+async function analyzeGame(rec, onProgress) {
+  const g = new Chess.Game(rec.startFen || Chess.START);
+  const plies = [];
+  for (let i = 0; i < rec.moves.length; i++) {
+    const r = Chess.search(g, { depth: 2, maxNodes: 120000 });
+    const played = r.scored.find(x => Chess.uciOf(x.m) === rec.moves[i]);
+    const best = clampSc(r.score), got = clampSc(played ? played.sc : r.score);
+    const bestSan = r.best ? g.san(r.best) : null;
+    const turn = g.turn;
+    const mv = g.move(rec.moves[i]);
+    if (!mv) break;
+    plies.push({ san: mv.san, uci: mv.uci, color: turn, loss: Math.max(0, best - got), evalW: turn === 'w' ? got : -got, bestSan, bestUci: r.best ? Chess.uciOf(r.best) : null, fenBefore: mv.fenBefore, captured: mv.captured });
+    plies[i].cls = classify(plies[i].loss);
+    onProgress && onProgress(i + 1, rec.moves.length);
+    await sleep(0);
+  }
+  // opponent's best reply after each move = next ply's bestUci
+  const me = rec.color;
+  const mine = plies.filter(p => p.color === me);
+  const acc = list => list.length ? Math.round(list.reduce((s, p) => s + 100 * Math.exp(-Math.min(p.loss, 1000) / 260), 0) / list.length) : 100;
+  const counts = { best: 0, good: 0, inaccuracy: 0, mistake: 0, blunder: 0 };
+  mine.forEach(p => counts[p.cls]++);
+  let keyIdx = -1, worst = 0;
+  plies.forEach((p, i) => { if (p.color === me && p.loss > worst) { worst = p.loss; keyIdx = i; } });
+  const coach = buildCoaching(rec, plies, keyIdx);
+  return { plies: plies.map(p => ({ san: p.san, uci: p.uci, c: p.color, loss: p.loss, cls: p.cls, ev: p.evalW, best: p.bestSan, bu: p.bestUci })), acc: acc(mine), oppAcc: acc(plies.filter(p => p.color !== me)), counts, keyIdx, coach };
+}
+
+function homeMinors(fen, color) {
+  const b = new Chess.Game(fen).board();
+  const sq = color === 'w' ? { b1: 'N', g1: 'N', c1: 'B', f1: 'B' } : { b8: 'n', g8: 'n', c8: 'b', f8: 'b' };
+  return Object.entries(sq).filter(([s, p]) => b[Chess.idx(s)] === p).length;
+}
+function buildCoaching(rec, plies, keyIdx) {
+  const me = rec.color, mine = plies.map((p, i) => ({ ...p, i })).filter(p => p.color === me);
+  const castled = mine.some(p => p.san.startsWith('O-O'));
+  const earlyQueen = mine.slice(0, 4).some(p => p.san[0] === 'Q');
+  const out = { headline: '', what: '', why: '', next: '', lesson: null, keyFen: null, keyBest: null, keyMove: null, keyNo: null };
+  if (keyIdx < 0 || plies[keyIdx].loss < 90) {
+    out.headline = 'You played a clean game.';
+    out.what = 'No serious mistakes: your moves stayed close to the best options throughout.';
+    out.why = castled ? 'You kept your king safe and your pieces coordinated, which kept the position easy to play.' : 'You avoided tactical errors even without castling — but that is harder to keep up against stronger opponents.';
+    out.next = rec.outcome === 'win' ? 'Try the next difficulty level. Clean games against stronger opponents are where rating comes from.' : 'Look for moments where you could have been more ambitious — a clean game can still be passive.';
+    if (rec.reason === 'resignation' && rec.outcome === 'loss') { out.headline = 'You resigned a position that was still playable.'; out.why = 'The engine found no serious mistakes in your moves. Resigning early turns a fair fight into a loss.'; out.next = 'Play on. Make your opponent prove the win — at every level, players miss chances when the game goes long.'; }
+    out.lesson = castled ? 't1' : 's3';
+    return out;
+  }
+  const k = plies[keyIdx]; const moveNo = Math.floor(keyIdx / 2) + 1;
+  const reply = plies[keyIdx + 1];
+  const g = new Chess.Game(k.fenBefore); g.move(k.uci);
+  // what the opponent could do next
+  let replyText = '';
+  const r2 = Chess.search(g, { depth: 2, maxNodes: 80000 });
+  if (r2.best) {
+    const rs = g.san(r2.best);
+    if (Math.abs(r2.score) > Chess.MATE - 100) replyText = `It allowed a forced mate starting with ${rs}.`;
+    else if (r2.best.captured) replyText = `It left your ${PIECE_NAMES[r2.best.captured.toLowerCase()]} on ${Chess.name(r2.best.to)} exposed — ${rs} wins it.`;
+    else replyText = `It handed your opponent the initiative: ${rs} became strong.`;
+  }
+  out.keyNo = `${moveNo}${me === 'w' ? '.' : '...'}`;
+  out.keyMove = k.san; out.keyBest = k.bestSan; out.keyFen = k.fenBefore; out.keyBestUci = k.bestUci;
+  out.headline = `Move ${moveNo}: ${k.san} was the turning point.`;
+  out.what = `${replyText} ${k.bestSan ? `${k.bestSan} was the stronger move here.` : ''}`.trim();
+  const undeveloped = homeMinors(k.fenBefore, me);
+  if (moveNo <= 16 && undeveloped >= 2) {
+    out.why = `You started action while ${undeveloped} of your minor pieces were still at home. With fewer pieces in play, you had fewer defenders when things got sharp.`;
+    out.next = 'Before your first attack, count your developed pieces. Aim for all four minor pieces out and your king castled.';
+    out.lesson = 's2';
+  } else if (!castled && moveNo >= 10) {
+    out.why = 'Your king was still in the centre, so every open line became dangerous for you and your pieces were tied to defence.';
+    out.next = 'Castle within the first ten moves in most openings. A safe king frees your pieces to play.';
+    out.lesson = 's3';
+  } else if (earlyQueen) {
+    out.why = 'Your queen came out early. It became a target, and your opponent developed with tempo by chasing it.';
+    out.next = 'Develop knights and bishops first; bring the queen out once the minor pieces support it.';
+    out.lesson = 'b6';
+  } else if (r2.best && r2.best.captured) {
+    out.why = 'The move didn’t check what your opponent could capture next. Most games at every level are decided by pieces left undefended.';
+    out.next = 'Before each move, run a blunder check: what are all of my opponent’s checks and captures after this move?';
+    out.lesson = 't5';
+  } else {
+    out.why = 'The move didn’t fit the needs of the position — it gave your opponent time to improve without cost.';
+    out.next = 'At each turn, ask what your opponent wants to do, then choose a move that stops it or makes your own plan faster.';
+    out.lesson = 't1';
+  }
+  return out;
+}
+
+/* offline coach answers: used when live AI coaching is unavailable */
+function offlineCoach(q, rec, an) {
+  const c = an.coach; const ql = q.toLowerCase();
+  if (/why|bad|wrong|mistake/.test(ql)) return c.keyMove ? `${c.keyMove} on move ${c.keyNo} was the costly one. ${c.what}\n\n${c.why}` : `Honestly, none of your moves was a real mistake in this game. ${c.why}`;
+  if (/should|instead|better|do/.test(ql)) return c.keyBest ? `${c.keyBest} was the stronger choice on move ${c.keyNo}. ${c.next}\n\nUse Practice position to find it yourself.` : c.next;
+  if (/practi|next|improve|train|study/.test(ql)) { const l = DATA.lessons.find(x => x.id === c.lesson); return `${c.next}\n\nRecommended: the “${l ? l.title : 'Tactics'}” lesson, then three puzzles today.`; }
+  return `Here’s the short version of this game: ${c.headline} ${c.why}`;
+}
+function coachPrompt(rec, an, history) {
+  const p = P(); const lvl = p.account.level;
+  const moments = an.plies.map((x, i) => ({ ...x, i })).filter(x => x.c === rec.color && x.loss >= 90).slice(0, 5)
+    .map(x => `Move ${Math.floor(x.i / 2) + 1}${x.c === 'w' ? '.' : '...'} ${x.san} (${CLS_LABEL[x.cls]}; stronger was ${x.best})`).join('\n') || 'No major mistakes.';
+  const g = new Chess.Game(rec.startFen || Chess.START); rec.moves.forEach(m => g.move(m));
+  const ctx = `You are Sankofa Coach, the chess coach inside Sankofa Chess — a learning platform rooted in African heritage ("Learn from the past. Master your next move.").
+Coach a ${lvl.toLowerCase()} player. Teach ideas, not engine numbers: explain what happened, why, and what to do next time. Be warm, direct and concrete. Refer to moves in standard notation. Keep every answer under 120 words, plain text, no markdown headings.
+Game: the player had the ${rec.color === 'w' ? 'white' : 'black'} pieces against ${rec.mode === 'ai' ? AI[rec.ai].name + ' (about ' + AI[rec.ai].rating + ')' : 'a friend'}. Result: ${rec.outcome} by ${rec.reason}.
+Moves (PGN): ${g.pgn()}
+Engine-flagged moments for the player:
+${moments}
+Summary already shown to the player: ${an.coach.headline} ${an.coach.what} ${an.coach.why}`;
+  const turns = history.map((m, i) => ({ role: m.who === 'me' ? 'user' : 'assistant', content: i === 0 && m.who === 'me' ? ctx + '\n\nPlayer question: ' + m.text : m.text }));
+  return turns;
+}
+
+/* ============ VIEWS 1: shell, landing, auth, onboarding, home ============ */
+const NAV = [['home', 'Home', '#/home'], ['play', 'Play', '#/play'], ['learn', 'Learn', '#/learn'], ['puzzle', 'Puzzles', '#/puzzles'], ['trophy', 'Challenges', '#/challenges'], ['profile', 'Profile', '#/profile']];
+const BOTTOM = [['home', 'Home', '#/home'], ['play', 'Play', '#/play'], ['learn', 'Learn', '#/learn'], ['puzzle', 'Puzzles', '#/puzzles'], ['profile', 'Profile', '#/profile']];
+function shell(active, inner) {
+  const p = P(); const lv = levelOf(p.xp);
+  const isOn = href => active && href.startsWith('#/' + active) ? ' aria-current="page"' : '';
+  return `<header class="topbar"><div class="wrap">
+      <a class="brand" href="#/home" aria-label="Sankofa Chess home">${logoSVG()}<span>Sankofa Chess</span></a>
+      <nav class="mainnav" aria-label="Main">${NAV.map(([, l, h]) => `<a href="${h}"${isOn(h)}>${l}</a>`).join('')}</nav>
+      <div class="spacer"></div>
+      <nav class="subnav" aria-label="More"><a href="#/stories"${isOn('#/stories')}>Stories</a><a href="#/leaderboard"${isOn('#/leaderboard')}>Leaderboard</a></nav>
+      <div class="xp-chip"><span class="num">Lv ${lv.n}</span><div class="bar" style="width:64px"><i style="width:${lv.pct}%"></i></div></div>
+      <a class="avatar" href="#/profile" aria-label="Your profile">${esc((p.account.firstName || '?')[0].toUpperCase())}</a>
+    </div></header>
+    <main id="main">${inner}</main>
+    <nav class="bottomnav" aria-label="Main">${BOTTOM.map(([ic, l, h]) => `<a href="${h}"${isOn(h)}>${icon(ic)}<span>${l}</span></a>`).join('')}</nav>`;
+}
+
+/* ---------- landing ---------- */
+function viewLanding() {
+  const signed = P() && P().session;
+  const html = `<header class="topbar"><div class="wrap">
+      <a class="brand" href="#/" aria-label="Sankofa Chess">${logoSVG()}<span>Sankofa Chess</span></a>
+      <div class="spacer"></div>
+      ${signed ? `<a class="btn btn-primary btn-sm" href="#/home">Open dashboard</a>` : `<a class="btn btn-ghost btn-sm" href="#/login">Log in</a><a class="btn btn-primary btn-sm" href="#/join">Join</a>`}
+    </div></header>
+    <main>
+    <section class="wrap hero">
+      <div>
+        <h1 class="display">Learn from the past. Master your next move.</h1>
+        <p class="lead">Sankofa Chess is a new generation chess platform built around strategy, learning and African heritage.</p>
+        <div class="row ctas"><a class="btn btn-primary btn-lg" href="${signed ? '#/play' : '#/join?next=play'}">Play Chess</a><a class="btn btn-secondary btn-lg" href="${signed ? '#/learn' : '#/join?next=learn'}">Start Learning</a></div>
+      </div>
+      <div class="hero-board">
+        <div id="heroBoard"></div>
+        <div class="caption"><span id="heroMsg"><b>White to move.</b> <span class="muted">Checkmate in one — a pattern over a thousand years old.</span></span><button class="btn btn-ghost btn-sm" id="heroReset" hidden>Reset</button></div>
+      </div>
+    </section>
+
+    <section class="band band-dark"><div class="wrap split">
+      <h2>Why Sankofa?</h2>
+      <div class="stack" style="--gap:16px">
+        <p class="quote">Every move teaches something.</p>
+        <p class="lead">Sankofa is an Akan idea from Ghana: go back and fetch what you left behind. We turn every game, mistake and challenge into an opportunity to think deeper, learn faster and move forward smarter.</p>
+      </div>
+    </div></section>
+
+    <section class="band"><div class="wrap split">
+      <div class="stack" style="--gap:14px"><h2>Learn with structure</h2><p class="muted">Short, interactive lessons. Read the idea, then play it on the board.</p><a class="btn btn-secondary" href="${signed ? '#/learn' : '#/join?next=learn'}">Start Learning</a></div>
+      <div class="catlist">${[['Beginner', 'How pieces move, check and checkmate, castling, first principles.'], ['Tactics', 'Forks, pins, skewers, discovered attacks and mating patterns.'], ['Strategy', 'The centre, development, king safety, pawn structure and space.'], ['Endgame', 'King and pawn, opposition, and the rook endings you will actually meet.']]
+          .map(([t, d]) => `<a href="${signed ? '#/learn' : '#/join?next=learn'}"><h3>${t}</h3><p>${d}</p><span>${DATA.lessons.filter(l => l.cat === t).length} lessons</span></a>`).join('')}</div>
+    </div></section>
+
+    <section class="band band-dark"><div class="wrap split" style="align-items:center">
+      <div class="stack" style="--gap:14px">
+        <h2>Today’s challenge</h2>
+        <p class="lead">White to move. Can you find the winning move?</p>
+        <p class="muted small">A new puzzle every day, from one-move mates to multi-move combinations.</p>
+        <div><a class="btn btn-primary" href="${signed ? '#/puzzles/daily' : '#/join?next=puzzles'}">Solve Puzzle</a></div>
+      </div>
+      <div style="max-width:360px">${miniBoardSVG(dailyPuzzle().fen, { cls: 'board-mini', label: 'Today’s puzzle position' })}</div>
+    </div></section>
+
+    <section class="band"><div class="wrap">
+      <div class="section-head"><div class="stack" style="--gap:8px"><h2>See yourself improve</h2><p class="muted">Every game, puzzle and lesson feeds your progress.</p></div></div>
+      <div class="metric-row">${[['1,247', 'Chess rating'], ['76%', 'Puzzle accuracy'], ['86', 'Games played'], ['56%', 'Win rate'], ['6 days', 'Learning streak']].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+      <p class="tiny faint" style="margin-top:10px">Example player profile.</p>
+    </div></section>
+
+    <section class="band band-dark"><div class="wrap split">
+      <div class="stack" style="--gap:16px">
+        <div style="width:56px;color:var(--gold)">${logoSVG({ fg: 'var(--gold)', egg: 'var(--ivory)' })}</div>
+        <p class="quote">“It is not wrong to go back for that which you have forgotten.”</p>
+        <p class="muted small">Akan proverb behind the word sankofa</p>
+      </div>
+      <div class="stack" style="--gap:14px">
+        <h2>Sankofa Stories</h2>
+        <p class="muted">Short reads that connect African philosophy, history and strategic traditions to the way you think at the board.</p>
+        <div class="catlist">${DATA.stories.slice(0, 3).map(s => `<a href="${signed ? '#/stories/' + s.id : '#/join?next=stories'}"><h3>${esc(s.title)}</h3><p>${esc(s.dek)}</p><span>${s.read} min</span></a>`).join('')}</div>
+      </div>
+    </div></section>
+
+    <section class="final-cta wrap">
+      <h2 class="display">Your next move starts here.</h2>
+      <p class="muted" style="margin:14px 0 26px">Rooted in Africa. Open to the world.</p>
+      <a class="btn btn-primary btn-lg" href="${signed ? '#/home' : '#/join'}">Join Sankofa Chess</a>
+    </section>
+    <footer class="footer"><div class="wrap row between"><span>© ${new Date().getFullYear()} Sankofa Chess</span><span>Chess. Strategy. Heritage.</span></div></footer>
+    </main>`;
+  return { html, mount() { mountHeroPuzzle(); } };
+}
+function mountHeroPuzzle() {
+  const pz = DATA.puzzles[0];
+  const g = new Chess.Game(pz.fen); const msg = $('#heroMsg'), reset = $('#heroReset');
+  let done = false;
+  const bv = new BoardView($('#heroBoard'), {
+    game: g, canMove: t => !done && t === 'w',
+    onMove: async (f, t, pr) => {
+      const m = g.move({ from: f, to: t, promo: pr }); if (!m) return false;
+      bv.last = m; done = true; reset.hidden = false;
+      if (g.status().reason === 'checkmate') msg.innerHTML = `<b style="color:var(--good)">Checkmate.</b> <span class="muted">That’s the Arabian mate: rook and knight in harmony.</span>`;
+      else msg.innerHTML = `<b style="color:var(--bad)">Not quite.</b> <span class="muted">The knight already covers g8 and h7.</span>`;
+      return true;
+    }
+  });
+  reset.onclick = () => { g.load(pz.fen); done = false; bv.last = null; bv.render(); reset.hidden = true; msg.innerHTML = `<b>White to move.</b> <span class="muted">Checkmate in one — a pattern over a thousand years old.</span>`; };
+}
+
+/* ---------- auth ---------- */
+function viewAuth(mode, q) {
+  const next = q.get('next') || '';
+  const countries = Object.entries(DATA.countries);
+  const isJoin = mode === 'join';
+  const html = `<header class="topbar"><div class="wrap"><a class="brand" href="#/">${logoSVG()}<span>Sankofa Chess</span></a></div></header>
+  <main class="wrap"><div class="auth">
+    <div class="stack" style="--gap:8px;margin-bottom:24px">
+      <h1>${isJoin ? 'Create your account' : 'Welcome back'}</h1>
+      <p class="muted">${isJoin ? 'It takes a minute. Your progress is saved from your first move.' : 'Log in to continue your streak.'}</p>
+    </div>
+    <div class="tabs" role="tablist" style="margin-bottom:22px"><button role="tab" aria-selected="${isJoin}" data-go="#/join${next ? '?next=' + next : ''}">Join</button><button role="tab" aria-selected="${!isJoin}" data-go="#/login${next ? '?next=' + next : ''}">Log in</button></div>
+    <button class="btn btn-secondary btn-block" disabled title="Available at launch">Continue with Google <span class="tiny faint">(available at launch)</span></button>
+    <div class="or">or with email</div>
+    <form id="authForm" class="stack" style="--gap:14px" novalidate>
+      ${isJoin ? `
+      <div class="grid g2" style="gap:14px">
+        <div class="field"><label for="fn">First name</label><input class="input" id="fn" autocomplete="given-name" required><span class="err" id="e-fn"></span></div>
+        <div class="field"><label for="un">Username</label><input class="input" id="un" autocomplete="username" required><span class="err" id="e-un"></span></div>
+      </div>` : ''}
+      <div class="field"><label for="em">Email</label><input class="input" id="em" type="email" autocomplete="email" required><span class="err" id="e-em"></span></div>
+      <div class="field"><label for="pw">Password</label><input class="input" id="pw" type="password" autocomplete="${isJoin ? 'new-password' : 'current-password'}" required>${isJoin ? '<span class="hint">At least 8 characters.</span>' : ''}<span class="err" id="e-pw"></span></div>
+      ${isJoin ? `
+      <div class="field"><label for="co">Country</label><select class="input" id="co" required><option value="">Choose your country</option>${countries.map(([c, n]) => `<option value="${c}">${flag(c)} ${esc(n)}</option>`).join('')}</select><span class="err" id="e-co"></span></div>
+      <div class="field"><label>Chess experience</label><div class="seg" id="lvl">${['Beginner', 'Intermediate', 'Advanced'].map(l => `<button type="button" aria-pressed="false" data-v="${l}">${l}</button>`).join('')}</div><span class="err" id="e-lvl"></span></div>
+      <div class="field"><label for="dob">Date of birth <span class="faint">(optional)</span></label><input class="input" id="dob" type="date"><span class="hint">Helps us show age-appropriate events later. Never shown publicly.</span></div>` : ''}
+      <span class="err" id="e-form"></span>
+      <button class="btn btn-primary btn-lg btn-block" type="submit">${isJoin ? 'Create account' : 'Log in'}</button>
+    </form>
+    <div class="or">exploring?</div>
+    <button class="btn btn-ghost btn-block" id="demoBtn">Try the demo player profile</button>
+    <p class="tiny faint" style="margin-top:22px">Preview build: accounts are stored privately for this browser. Production sign-in will run on a dedicated auth service.</p>
+  </div></main>`;
+  return {
+    html, mount() {
+      $$('[data-go]').forEach(b => b.onclick = () => location.hash = b.dataset.go);
+      let level = '';
+      $$('#lvl button').forEach(b => b.onclick = () => { level = b.dataset.v; $$('#lvl button').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#e-lvl').textContent = ''; });
+      $('#demoBtn').onclick = async () => { $('#demoBtn').disabled = true; $('#demoBtn').textContent = 'Setting up demo…'; await sleep(30); Store.p = makeDemoProfile(); Store.save(); location.hash = '#/home'; };
+      $('#authForm').onsubmit = async e => {
+        e.preventDefault();
+        const val = id => ($('#' + id) || {}).value?.trim() || '';
+        const errs = {};
+        const email = val('em'), pw = $('#pw').value;
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) errs.em = 'Enter a valid email address.';
+        if (isJoin) {
+          if (!val('fn')) errs.fn = 'Enter your first name.';
+          if (!/^[a-zA-Z0-9_.]{3,20}$/.test(val('un'))) errs.un = '3–20 letters, numbers, dots or underscores.';
+          if (DATA.players.some(x => x.u.toLowerCase() === val('un').toLowerCase())) errs.un = 'That username is taken.';
+          if (pw.length < 8) errs.pw = 'Use at least 8 characters.';
+          if (!val('co')) errs.co = 'Choose your country.';
+          if (!level) errs.lvl = 'Choose your experience level.';
+        } else if (!pw) errs.pw = 'Enter your password.';
+        $$('.err').forEach(x => x.textContent = ''); $$('.input').forEach(x => x.removeAttribute('aria-invalid'));
+        for (const [k, v] of Object.entries(errs)) { $('#e-' + k).textContent = v; const inp = $('#' + k); inp && inp.setAttribute('aria-invalid', 'true'); }
+        if (Object.keys(errs).length) { const first = $('[aria-invalid="true"]'); first && first.focus(); return; }
+        const h = await hashPw(email, pw);
+        if (isJoin) {
+          if (P() && P().account.email === email.toLowerCase() && !P().demo) { $('#e-form').textContent = 'An account with this email already exists here. Log in instead.'; return; }
+          Store.p = newProfile({ firstName: val('fn'), username: val('un'), email: email.toLowerCase(), pw: h, country: val('co'), level, dob: val('dob') || null });
+          Store.p.next = next; Store.save(); location.hash = '#/welcome';
+        } else {
+          const p = P();
+          if (!p || p.account.email !== email.toLowerCase() || p.account.pw !== h) { $('#e-form').textContent = 'That email and password don’t match an account on this device.'; return; }
+          p.session = true; Store.save(); location.hash = next ? '#/' + next : '#/home';
+        }
+      };
+    }
+  };
+}
+
+/* ---------- onboarding ---------- */
+function viewOnboarding() {
+  const p = P(); let step = 0;
+  const goals = [['Learn the basics', 'How pieces move and how games are won.'], ['Improve tactics', 'Spot forks, pins and mates faster.'], ['Improve strategy', 'Plans, structure and positional play.'], ['Prepare for tournaments', 'Sharper, more serious training.'], ['Play for fun', 'Good games, no pressure.']];
+  const lvls = [['Beginner', 'New to chess or still learning the rules.'], ['Intermediate', 'I know the rules and some tactics.'], ['Advanced', 'I play regularly and study the game.']];
+  const html = `<header class="topbar"><div class="wrap"><a class="brand" href="#/">${logoSVG()}<span>Sankofa Chess</span></a></div></header><main class="wrap"><div class="onb" id="onb"></div></main>`;
+  function draw() {
+    const el = $('#onb'); const dots = `<div class="dots" aria-label="Step ${step + 1} of 4">${[0, 1, 2, 3].map(i => `<i class="${i <= step ? 'on' : ''}"></i>`).join('')}</div>`;
+    if (step === 0) el.innerHTML = `${dots}<div class="stack" style="--gap:18px;margin-top:34px">
+        <div style="width:72px;color:var(--text)">${logoSVG()}</div>
+        <h1 class="display" style="font-size:clamp(2.4rem,7vw,3.4rem)">Welcome to Sankofa Chess, ${esc(p.account.firstName)}.</h1>
+        <p class="lead">Every game you play here becomes a lesson. Three quick questions and your training plan is ready.</p>
+        <div><button class="btn btn-primary btn-lg" id="nx">Let’s go</button></div></div>`;
+    if (step === 1) el.innerHTML = `${dots}<div class="stack" style="--gap:18px;margin-top:34px"><h2>What’s your chess level?</h2>
+        <div class="choice">${lvls.map(([t, d]) => `<button aria-pressed="${p.account.level === t}" data-v="${t}"><span style="flex:1"><b>${t}</b><span>${d}</span></span></button>`).join('')}</div>
+        <div class="row between"><button class="btn btn-ghost" id="bk">Back</button><button class="btn btn-primary" id="nx">Continue</button></div></div>`;
+    if (step === 2) el.innerHTML = `${dots}<div class="stack" style="--gap:18px;margin-top:34px"><h2>What do you want to improve?</h2>
+        <div class="choice">${goals.map(([t, d]) => `<button aria-pressed="${p.goal === t}" data-v="${t}"><span style="flex:1"><b>${t}</b><span>${d}</span></span></button>`).join('')}</div>
+        <div class="row between"><button class="btn btn-ghost" id="bk">Back</button><button class="btn btn-primary" id="nx" ${p.goal ? '' : 'disabled'}>Continue</button></div></div>`;
+    if (step === 3) {
+      const first = startLesson();
+      el.innerHTML = `${dots}<div class="stack" style="--gap:18px;margin-top:34px"><h2>Your dashboard is ready.</h2>
+        <div class="panel stack" style="--gap:12px">
+          <div class="row between"><span class="muted">Starting rating</span><b class="num">${p.rating}</b></div>
+          <div class="row between"><span class="muted">Sankofa level</span><b>1 — Seed</b></div>
+          <div class="row between"><span class="muted">First lesson</span><b>${esc(first.title)}</b></div>
+          <div class="row between"><span class="muted">Daily mission</span><b>Solve 3 puzzles</b></div>
+        </div>
+        <p class="muted small">Sankofa levels track your training progress. They are separate from official chess titles.</p>
+        <div><button class="btn btn-primary btn-lg" id="nx">Enter my dashboard</button></div></div>`;
+    }
+    $$('.choice button', el).forEach(b => b.onclick = () => {
+      if (step === 1) { p.account.level = b.dataset.v; p.rating = { Beginner: 800, Intermediate: 1200, Advanced: 1600 }[b.dataset.v]; p.peak = p.rating; }
+      if (step === 2) p.goal = b.dataset.v;
+      Store.save(); draw();
+    });
+    const bk = $('#bk'); if (bk) bk.onclick = () => { step--; draw(); };
+    $('#nx').onclick = () => {
+      if (step < 3) { step++; draw(); return; }
+      p.onboarded = true; const nx = p.next; delete p.next; Store.save(); location.hash = nx ? '#/' + nx : '#/home';
+    };
+    $('#nx').focus();
+  }
+  return { html, mount: draw };
+}
+function startLesson() {
+  const p = P(); const goal = p.goal || '';
+  const order = goal === 'Improve tactics' ? ['Tactics', 'Beginner', 'Strategy', 'Endgame'] : goal === 'Improve strategy' || goal === 'Prepare for tournaments' ? (p.account.level === 'Beginner' ? ['Beginner', 'Strategy', 'Tactics', 'Endgame'] : ['Strategy', 'Tactics', 'Endgame', 'Beginner']) : p.account.level === 'Beginner' ? ['Beginner', 'Tactics', 'Strategy', 'Endgame'] : ['Tactics', 'Strategy', 'Endgame', 'Beginner'];
+  for (const c of order) { const l = DATA.lessons.find(x => x.cat === c && !p.lessons[x.id]); if (l) return l; }
+  return DATA.lessons[0];
+}
+const dailyPuzzle = () => DATA.puzzles[dayIndex() % DATA.puzzles.length];
+
+/* ---------- home ---------- */
+function viewHome() {
+  const p = P(); rollCounters();
+  const daily = CHALLENGES[0], ds = challengeState(daily);
+  const next = startLesson(); const nIdx = DATA.lessons.filter(l => l.cat === next.cat).indexOf(next) + 1;
+  const sd = DATA.sankofaDaily[dayIndex() % DATA.sankofaDaily.length];
+  const lastGame = p.games[0];
+  const lv = levelOf(p.xp);
+  const acc = puzzleAccuracy(p), wr = winRate(p);
+  const html = shell('home', `<div class="wrap page">
+    <div class="row between" style="margin-bottom:22px;align-items:flex-end">
+      <div class="stack" style="--gap:6px"><h1>Welcome back, ${esc(p.account.username)}.</h1><p class="muted">Sankofa Level ${lv.n} · ${lv.name}${lv.next ? ` <span class="faint">— ${lv.next.xp - p.xp} XP to ${lv.next.name}</span>` : ''}</p></div>
+      ${p.streak ? `<span class="badge badge-gold">${icon('flame')}<span class="num">${p.streak}-day streak</span></span>` : ''}
+    </div>
+    <div class="dash-grid">
+      <div class="stack" style="--gap:16px">
+        <section class="panel mission" aria-labelledby="mh">
+          <div class="sym">${logoSVG({ fg: 'var(--gold)' })}</div>
+          <p class="muted small">Today’s mission</p>
+          <h2 id="mh" style="margin:6px 0 4px">Daily Sankofa Challenge</h2>
+          <p class="text-2">Solve 3 puzzles.</p>
+          <div class="row" style="margin-top:16px;gap:14px"><div class="bar" style="flex:1;max-width:320px"><i style="width:${100 * ds.v / 3}%"></i></div><b class="num">${ds.v} / 3</b></div>
+          <div class="row" style="margin-top:18px">${ds.done ? (ds.claimed ? `<span class="badge badge-good">Completed · +${daily.reward} XP</span>` : `<button class="btn btn-primary" id="claimDaily">Claim ${daily.reward} XP</button>`) : `<a class="btn btn-primary" href="#/puzzles/next">Continue puzzles</a>`}</div>
+        </section>
+        <div class="qa">
+          <a href="#/play">${icon('play')}Play</a><a href="#/puzzles/next">${icon('puzzle')}Puzzle</a><a href="#/learn">${icon('learn')}Learn</a>
+        </div>
+        <section aria-labelledby="ph">
+          <div class="section-head" style="margin-top:8px"><h3 id="ph">Your progress</h3><a class="link small" href="#/profile">Full profile</a></div>
+          <div class="stats">
+            ${[[p.rating, 'Rating'], [p.stats.games, 'Games'], [wr == null ? '—' : wr + '%', 'Win rate'], [acc == null ? '—' : acc + '%', 'Puzzle accuracy'], [p.streak, 'Current streak']].map(([v, l]) => `<div class="tile stat"><b>${v}</b><span>${l}</span></div>`).join('')}
+          </div>
+        </section>
+        ${lastGame ? `<section class="tile row between" style="padding:18px">
+          <div class="stack" style="--gap:4px"><span class="muted small">Last game</span><b>${outcomeLabel(lastGame)} vs ${esc(oppName(lastGame))}</b><span class="small faint">${esc(lastGame.reason)} · ${Math.ceil(lastGame.moves.length / 2)} moves</span></div>
+          <a class="btn btn-secondary" href="#/analysis/${lastGame.id}">${lastGame.an ? 'Review' : 'Get feedback'}</a></section>` : `<section class="empty"><p><b>Your first game is waiting.</b></p><p class="small" style="margin:6px 0 14px">Play the computer and you’ll get a personal review afterwards.</p><a class="btn btn-primary" href="#/play">Play your first game</a></section>`}
+      </div>
+      <div class="stack" style="--gap:16px">
+        <a class="panel tile-link" href="#/learn/${next.id}" style="display:block">
+          <p class="muted small">Continue learning</p>
+          <h3 style="margin:8px 0 4px">${next.cat} ${pad(nIdx)}: ${esc(next.title)}</h3>
+          <p class="small muted">${next.mins} min · interactive</p>
+          <span class="btn btn-secondary btn-sm" style="margin-top:14px">Start lesson</span>
+        </a>
+        <section class="panel">
+          <p class="muted small">Sankofa of the day</p>
+          <p class="proverb" style="margin:10px 0 12px">“${esc(sd.q)}”</p>
+          <p class="small text-2"><b>At the board:</b> ${esc(sd.t)}</p>
+        </section>
+        <section class="panel stack" style="--gap:12px">
+          <div class="row between"><h3>This week</h3><a class="link small" href="#/challenges">All challenges</a></div>
+          ${CHALLENGES.slice(1).map(ch => { const s = challengeState(ch); return `<div><div class="row between small"><span>${ch.title}</span><span class="num muted">${s.v}/${ch.target}</span></div><div class="bar" style="margin-top:6px"><i style="width:${100 * s.v / ch.target}%"></i></div></div>`; }).join('')}
+        </section>
+        <a class="tile tile-link row between" href="#/stories"><span><b>Sankofa Stories</b><br><span class="small muted">${esc(DATA.stories[dayIndex() % DATA.stories.length].title)}</span></span>${icon('next')}</a>
+      </div>
+    </div></div>`);
+  return { html, mount() { const c = $('#claimDaily'); if (c) c.onclick = () => { claimChallenge('daily-puzzles'); render(); }; } };
+}
+const oppName = g => g.mode === 'ai' ? `${AI[g.ai].name} (${AI[g.ai].label})` : 'Pass & play';
+const outcomeLabel = g => g.outcome === 'win' ? 'Won' : g.outcome === 'loss' ? 'Lost' : 'Drew';
+
+/* ============ VIEWS 2: play, analysis, coach, practice ============ */
+const Play = { cur: null, cfg: { mode: 'ai', ai: 2, color: 'w', time: 10, inc: 0 } };
+let samplePromise = null;
+const getSample = () => { if (!samplePromise) samplePromise = (typeof claude !== 'undefined' && claude.use) ? claude.use('sample').catch(() => null) : Promise.resolve(null); return samplePromise; };
+
+function viewPlay() {
+  const c = Play.cur;
+  if (c && !c.over) return viewGame();
+  const cfg = Play.cfg;
+  const seg = (key, opts) => `<div class="seg" data-key="${key}">${opts.map(([v, l]) => `<button aria-pressed="${String(cfg[key]) === String(v)}" data-v="${v}">${l}</button>`).join('')}</div>`;
+  const html = shell('play', `<div class="wrap page"><div class="play-layout">
+    <div class="setup-preview"><div id="previewBoard"></div></div>
+    <div class="stack" style="--gap:18px">
+      <div class="stack" style="--gap:6px"><h1>Play</h1><p class="muted">Every game ends with a personal review.</p></div>
+      <div class="field"><label>Opponent</label>
+        <div class="choice" id="aiPick">${[1, 2, 3].map(l => `<button aria-pressed="${cfg.mode === 'ai' && cfg.ai === l}" data-ai="${l}"><span style="flex:1"><b>${AI[l].name} <span class="faint" style="font-weight:500">· ${AI[l].label}</span></b><span>${AI[l].blurb} About ${AI[l].rating}.</span></span></button>`).join('')}
+          <button aria-pressed="${cfg.mode === 'local'}" data-ai="local"><span style="flex:1"><b>Pass &amp; play</b><span>Two players, one device. Not rated.</span></span></button></div></div>
+      <div class="field"><label>Your pieces</label>${seg('color', [['w', 'White'], ['b', 'Black'], ['r', 'Random']])}</div>
+      <div class="field"><label>Time control</label>${seg('time', [[5, '5 min'], [10, '10 min'], [15, '15 + 10'], [0, 'No clock']])}</div>
+      <button class="btn btn-primary btn-lg btn-block" id="startBtn">Start game</button>
+      <p class="tiny faint">Online play against other people is coming next. Games against the computer are rated.</p>
+    </div></div></div>`);
+  return {
+    html, mount() {
+      new BoardView($('#previewBoard'), { game: new Chess.Game(), canMove: () => false });
+      $$('#aiPick button').forEach(b => b.onclick = () => { const v = b.dataset.ai; if (v === 'local') cfg.mode = 'local'; else { cfg.mode = 'ai'; cfg.ai = +v; } $$('#aiPick button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      $$('.seg[data-key]').forEach(s => $$('button', s).forEach(b => b.onclick = () => { const k = s.dataset.key; cfg[k] = k === 'time' ? +b.dataset.v : b.dataset.v; if (k === 'time') cfg.inc = cfg.time === 15 ? 10 : 0; $$('button', s).forEach(x => x.setAttribute('aria-pressed', x === b)); }));
+      $('#startBtn').onclick = () => { startGame(); render(); };
+    }
+  };
+}
+function startGame(opts = {}) {
+  const cfg = { ...Play.cfg, ...opts };
+  const color = cfg.mode === 'local' ? 'w' : cfg.color === 'r' ? (Math.random() < .5 ? 'w' : 'b') : cfg.color;
+  const g = new Chess.Game(cfg.fen || Chess.START);
+  Play.cur = { id: 'g' + Date.now(), g, cfg, color, clocks: cfg.time ? { w: cfg.time * 60000, b: cfg.time * 60000 } : null, tStart: performance.now(), over: false, thinking: false, view: null, drawOffered: 0 };
+}
+function viewGame() {
+  const c = Play.cur, g = c.g, cfg = c.cfg;
+  const oppLabel = cfg.mode === 'ai' ? `${AI[cfg.ai].name} <span class="faint small">${AI[cfg.ai].rating}</span>` : (c.color === 'w' ? 'Black' : 'White');
+  const meLabel = cfg.mode === 'ai' ? `${esc(P().account.username)} <span class="faint small">${P().rating}</span>` : 'White';
+  const html = shell('play', `<div class="wrap page" style="padding-top:18px"><div class="play-layout">
+    <div>
+      <div class="player-strip" id="topStrip"><div class="who"><span class="avatar" style="width:30px;height:30px;font-size:.8rem;background:var(--surface-3)">${cfg.mode === 'ai' ? AI[cfg.ai].name[0] : 'B'}</span><div><b>${oppLabel}</b><div class="caps" id="capTop"></div></div></div><div class="clock" id="clkTop"></div></div>
+      <div id="gameBoard"></div>
+      <div class="player-strip" id="botStrip"><div class="who"><span class="avatar" style="width:30px;height:30px;font-size:.8rem">${esc((P().account.firstName || 'Y')[0])}</span><div><b>${meLabel}</b><div class="caps" id="capBot"></div></div></div><div class="clock" id="clkBot"></div></div>
+    </div>
+    <aside class="panel stack" style="--gap:14px;padding:18px">
+      <div class="row between"><span class="status-line" id="status" aria-live="polite"></span><button class="btn btn-ghost btn-sm" id="flipBtn" aria-label="Flip board">${icon('flip')}</button></div>
+      <div class="moves" id="moveList" aria-label="Move list"></div>
+      <div class="row" style="gap:8px"><button class="btn btn-secondary btn-sm" id="drawBtn">${icon('handshake')}Offer draw</button><button class="btn btn-danger btn-sm" id="resignBtn">${icon('flag')}Resign</button></div>
+      <p class="tiny faint" id="viewNote" hidden>Viewing an earlier position. <button class="btn btn-ghost btn-sm" id="liveBtn">Back to game</button></p>
+    </aside></div></div>`);
+  return { html, mount: mountGame, cleanup: () => { clearInterval(c.tick); } };
+}
+function mountGame() {
+  const c = Play.cur, g = c.g, cfg = c.cfg;
+  let orient = c.color;
+  const bv = new BoardView($('#gameBoard'), {
+    game: g, orientation: orient,
+    canMove: t => !c.over && !c.thinking && (cfg.mode === 'local' || t === c.color),
+    onMove: async (f, t, pr) => { const ok = applyMove({ from: f, to: t, promo: pr }); if (ok && !c.over && cfg.mode === 'ai' && g.turn !== c.color) aiTurn(); return ok; }
+  });
+  c.bv = bv; if (g.hist.length) bv.last = g.hist[g.hist.length - 1]; bv.render();
+  function applyMove(mv) {
+    const mover = g.turn;
+    const now = performance.now();
+    if (c.clocks && g.hist.length >= 1) { c.clocks[mover] -= now - c.tStart; c.clocks[mover] += (cfg.inc || 0) * 1000; }
+    c.tStart = now;
+    const m = g.move(mv); if (!m) return false;
+    bv.last = m; bv.live(); $('#viewNote').hidden = true;
+    const st = g.status();
+    if (st.over) { finishGame(st.result, st.reason); return true; }
+    update(); return true;
+  }
+  async function aiTurn() {
+    c.thinking = true; update();
+    await sleep(350 + Math.random() * 450);
+    if (c.over || Play.cur !== c) return;
+    const uci = Chess.aiMove(g, cfg.ai);
+    c.thinking = false;
+    if (uci) applyMove(uci);
+    update();
+  }
+  function caps() {
+    const start = { p: 8, n: 2, b: 2, r: 2, q: 1 }; const have = { w: {}, b: {} };
+    for (const p of g.board()) if (p && p.toLowerCase() !== 'k') { const col = Chess.colorOf(p); have[col][p.toLowerCase()] = (have[col][p.toLowerCase()] || 0) + 1; }
+    const lost = col => Object.entries(start).flatMap(([t, n]) => Array(Math.max(0, n - (have[col][t] || 0))).fill(col === 'w' ? t.toUpperCase() : t));
+    const mat = g.material();
+    const render = (col) => { const taken = lost(col === 'w' ? 'b' : 'w'); const diff = mat[col] - mat[col === 'w' ? 'b' : 'w']; return taken.map(pieceSVG).join('') + (diff > 0 ? `<span style="margin-left:8px">+${diff}</span>` : ''); };
+    const mine = c.color, theirs = c.color === 'w' ? 'b' : 'w';
+    $('#capBot').innerHTML = render(mine); $('#capTop').innerHTML = render(theirs);
+  }
+  function update() {
+    if (!$('#status')) return;
+    const st = g.status(); const side = g.turn === 'w' ? 'White' : 'Black';
+    let s = c.over ? `${c.resultText}` : c.thinking ? `<span class="thinking">${AI[cfg.ai].name} is thinking</span>` : (cfg.mode === 'local' ? `${side} to move` : g.turn === c.color ? 'Your move' : `${AI[cfg.ai].name} to move`);
+    if (!c.over && st.check) s += ' — check';
+    $('#status').innerHTML = s;
+    // moves
+    const ml = $('#moveList'); let h = '';
+    for (let i = 0; i < g.hist.length; i += 2) {
+      h += `<span class="n">${i / 2 + 1}.</span><span class="m" data-i="${i}">${g.hist[i].san}</span><span class="m" data-i="${i + 1}">${g.hist[i + 1] ? g.hist[i + 1].san : ''}</span>`;
+    }
+    ml.innerHTML = h || '<span class="n"></span><span class="muted small" style="grid-column:2/4">Moves will appear here.</span>';
+    ml.scrollTop = ml.scrollHeight;
+    $$('.m', ml).forEach(el => el.onclick = () => { const i = +el.dataset.i; const hm = g.hist[i]; if (!hm) return; bv.setPosition(hm.fenAfter, hm); $$('.m', ml).forEach(x => x.classList.toggle('cur', x === el)); $('#viewNote').hidden = false; });
+    caps(); clocks();
+    $('#drawBtn').disabled = $('#resignBtn').disabled = c.over || g.hist.length < 2;
+  }
+  function clocks() {
+    const top = c.color === 'w' ? 'b' : 'w', bot = c.color;
+    const val = col => { if (!c.clocks) return null; let v = c.clocks[col]; if (!c.over && g.turn === col && g.hist.length) v -= performance.now() - c.tStart; return v; };
+    for (const [id, col] of [['#clkTop', top], ['#clkBot', bot]]) {
+      const el = $(id); if (!el) continue; const v = val(col);
+      el.textContent = c.clocks ? fmtTime(v) : '—';
+      el.classList.toggle('on', !c.over && g.turn === col && !!c.clocks); el.classList.toggle('low', v != null && v < 20000);
+      if (c.clocks && v <= 0 && !c.over && g.hist.length) { c.clocks[col] = 0; finishGame(col === 'w' ? '0-1' : '1-0', 'timeout'); }
+    }
+  }
+  c.tick = setInterval(clocks, 200);
+  $('#flipBtn').onclick = () => {
+    orient = orient === 'w' ? 'b' : 'w'; bv.o.orientation = orient; bv.render();
+    const t = $('#topStrip'), b = $('#botStrip'), bd = $('#gameBoard');
+    if (orient === c.color) { bd.before(t); bd.after(b); } else { bd.before(b); bd.after(t); }
+  };
+  $('#liveBtn').onclick = () => { bv.live(); $('#viewNote').hidden = true; $$('.m').forEach(x => x.classList.remove('cur')); };
+  $('#resignBtn').onclick = () => modal(`<h3>Resign this game?</h3><p class="muted" style="margin:8px 0 20px">You’ll still get your review.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-x>Keep playing</button><button class="btn btn-danger" data-ok>Resign</button></div>`, (s, close) => {
+    $('[data-x]', s).onclick = close;
+    $('[data-ok]', s).onclick = () => { close(); const loser = cfg.mode === 'local' ? g.turn : c.color; finishGame(loser === 'w' ? '0-1' : '1-0', 'resignation'); };
+  });
+  $('#drawBtn').onclick = () => {
+    if (cfg.mode === 'local') return modal(`<h3>Agree to a draw?</h3><p class="muted" style="margin:8px 0 20px">Both players accept.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-x>No</button><button class="btn btn-primary" data-ok>Agree draw</button></div>`, (s, close) => { $('[data-x]', s).onclick = close; $('[data-ok]', s).onclick = () => { close(); finishGame('1/2-1/2', 'agreement'); }; });
+    if (g.hist.length - c.drawOffered < 10 && c.drawOffered) return toast('You can offer again in a few moves.');
+    c.drawOffered = g.hist.length;
+    // the AI accepts only if it is not better
+    const ev = Chess.evaluate(g) * (g.turn === c.color ? -1 : 1);
+    if (ev <= 40 && g.hist.length >= 20) finishGame('1/2-1/2', 'agreement'); else toast(`${AI[cfg.ai].name} declines the draw.`);
+  };
+  update();
+  if (cfg.mode === 'ai' && g.turn !== c.color && !c.over && !c.thinking) aiTurn();
+
+  function finishGame(result, reason) {
+    if (c.over) return; c.over = true; c.thinking = false; clearInterval(c.tick);
+    const p = P(); rollCounters(); touchStreak();
+    const my = c.color;
+    const outcome = result === '1/2-1/2' ? 'draw' : ((result === '1-0') === (my === 'w') ? 'win' : 'loss');
+    const winnerTxt = result === '1/2-1/2' ? 'Draw' : (result === '1-0' ? 'White wins' : 'Black wins');
+    c.resultText = `${winnerTxt} by ${reason}`;
+    let rDelta = 0;
+    if (cfg.mode === 'ai') {
+      const opp = AI[cfg.ai].rating, exp = 1 / (1 + Math.pow(10, (opp - p.rating) / 400));
+      const score = outcome === 'win' ? 1 : outcome === 'draw' ? .5 : 0;
+      rDelta = Math.round(32 * (score - exp)); p.rating += rDelta; p.peak = Math.max(p.peak, p.rating);
+      p.stats.games++; p.stats[outcome === 'win' ? 'wins' : outcome === 'loss' ? 'losses' : 'draws']++;
+    }
+    p.c.weekGames++;
+    if (outcome === 'win' && p.c.lessonPending) p.c.lessonWin = true;
+    const rec = { id: c.id, date: Date.now(), mode: cfg.mode, ai: cfg.ai, color: my, result, outcome: cfg.mode === 'local' ? (result === '1/2-1/2' ? 'draw' : result === '1-0' ? 'win' : 'loss') : outcome, reason, moves: g.hist.map(h => h.uci), startFen: g.startFen, rDelta, an: null };
+    if (g.hist.length >= 2) { p.games.unshift(rec); p.games = p.games.slice(0, 20); }
+    const xp = cfg.mode === 'ai' ? (outcome === 'win' ? 50 : 20) : 10;
+    addXP(xp, outcome === 'win' ? 'Victory' : 'Game played'); checkAchievements(); Store.save();
+    update();
+    const head = cfg.mode === 'local' ? winnerTxt : outcome === 'win' ? 'You won.' : outcome === 'loss' ? 'You lost.' : 'Draw.';
+    const sub = cfg.mode === 'local' ? `By ${reason}.` : outcome === 'loss' ? 'Every game teaches you something. Let’s find out what this one taught.' : outcome === 'win' ? 'Well played. See what you did right — and what you can sharpen.' : 'Let’s see who had the better chances.';
+    setTimeout(() => modal(`<div class="stack" style="--gap:10px">
+        <p class="muted small">${esc(winnerTxt)} by ${esc(reason)}</p>
+        <h2 class="display">${head}</h2>
+        <p class="muted">${sub}</p>
+        ${cfg.mode === 'ai' ? `<div class="row" style="margin:8px 0 6px;gap:18px"><div class="stat"><b class="num">${p.rating}</b><span>Rating <span style="color:${rDelta >= 0 ? 'var(--good)' : 'var(--bad)'}">${rDelta >= 0 ? '+' : ''}${rDelta}</span></span></div><div class="stat"><b class="num">+${xp}</b><span>XP</span></div></div>` : ''}
+        <div class="stack" style="--gap:8px;margin-top:10px">
+          ${g.hist.length >= 2 ? `<a class="btn btn-primary btn-block" href="#/analysis/${rec.id}" data-close>Review with the coach</a>` : ''}
+          <button class="btn btn-secondary btn-block" data-again>Play again</button>
+          <button class="btn btn-ghost btn-block" data-x>Close</button></div></div>`, (s, close) => {
+      $$('[data-close]', s).forEach(a => a.onclick = () => close());
+      $('[data-again]', s).onclick = () => { close(); startGame(); render(); };
+      $('[data-x]', s).onclick = close;
+    }), 500);
+  }
+}
+
+/* ---------- analysis ---------- */
+function viewAnalysis(id) {
+  const p = P(); const rec = p.games.find(x => x.id === id);
+  if (!rec) return { html: shell('play', `<div class="wrap page"><div class="empty"><p><b>We couldn’t find that game.</b></p><p class="small" style="margin:6px 0 14px">It may have been removed from your recent games.</p><a class="btn btn-primary" href="#/play">Play a game</a></div></div>`) };
+  const html = shell('play', `<div class="wrap page"><a class="back" href="#/profile">${icon('back')}Your games</a><div id="anRoot">
+      <div class="panel stack" style="--gap:14px;max-width:560px">
+        <h2>Reviewing your game</h2><p class="muted" id="anMsg">Checking every move for what it teaches…</p>
+        <div class="bar"><i id="anBar" style="width:2%"></i></div>
+        <div class="skeleton" style="height:120px"></div>
+      </div></div></div>`);
+  return {
+    html, async mount() {
+      if (!rec.an) {
+        rec.an = await analyzeGame(rec, (i, n) => { const b = $('#anBar'); if (b) { b.style.width = (100 * i / n) + '%'; $('#anMsg').textContent = `Reviewing move ${Math.ceil(i / 2)} of ${Math.ceil(n / 2)}…`; } });
+        p.reviews = (p.reviews || 0) + 1; checkAchievements(); Store.save();
+        if (!$('#anRoot')) return;
+      }
+      drawAnalysis(rec);
+    }
+  };
+}
+function drawAnalysis(rec) {
+  const an = rec.an, c = an.coach, me = rec.color;
+  const opp = oppName(rec);
+  const plyCount = an.plies.length;
+  const root = $('#anRoot');
+  root.innerHTML = `
+  <div class="row between" style="margin-bottom:18px;align-items:flex-end">
+    <div class="stack" style="--gap:6px"><h1>${outcomeLabel(rec)} vs ${esc(opp)}</h1><p class="muted">${esc(rec.result)} by ${esc(rec.reason)}${rec.mode === 'ai' ? ` · rating ${rec.rDelta >= 0 ? '+' : ''}${rec.rDelta}` : ''}</p></div>
+    <a class="btn btn-secondary" href="#/play" id="againBtn">Play again</a>
+  </div>
+  <div class="stats" style="margin-bottom:18px">
+    ${[[an.acc + '%', 'Accuracy'], [Math.ceil(plyCount / 2), 'Moves'], [an.counts.best + an.counts.good, 'Best / good moves'], [an.counts.mistake + an.counts.inaccuracy, 'Mistakes'], [an.counts.blunder, 'Blunders']].map(([v, l]) => `<div class="tile stat"><b>${v}</b><span>${l}</span></div>`).join('')}
+  </div>
+  <div class="an-layout">
+    <div class="stack" style="--gap:16px">
+      <section class="panel stack" style="--gap:14px" aria-labelledby="bl">
+        <p class="muted small">Your biggest lesson</p>
+        <h2 id="bl">${esc(c.headline)}</h2>
+        <div class="steps">
+          <div><b>What happened</b><p>${esc(c.what)}</p></div>
+          <div><b>Why it happened</b><p>${esc(c.why)}</p></div>
+          <div><b>Next time</b><p>${esc(c.next)}</p></div>
+        </div>
+        <div class="row">${c.keyFen ? `<a class="btn btn-primary" href="#/practice/${rec.id}">Practice Position</a>` : ''}${c.lesson ? `<a class="btn btn-secondary" href="#/learn/${c.lesson}">Lesson: ${esc(DATA.lessons.find(l => l.id === c.lesson).title)}</a>` : ''}</div>
+      </section>
+      <div id="anBoard"></div>
+      <div class="row" style="justify-content:center;gap:6px">
+        <button class="btn btn-secondary btn-sm" data-nav="first" aria-label="Start">${icon('first')}</button>
+        <button class="btn btn-secondary btn-sm" data-nav="prev" aria-label="Previous move">${icon('back')}</button>
+        <span class="num small muted" id="plyLbl" style="min-width:110px;text-align:center"></span>
+        <button class="btn btn-secondary btn-sm" data-nav="next" aria-label="Next move">${icon('next')}</button>
+        <button class="btn btn-secondary btn-sm" data-nav="last" aria-label="End">${icon('last')}</button>
+      </div>
+      <div><svg class="evalgraph" id="evg" viewBox="0 0 400 110" preserveAspectRatio="none" role="img" aria-label="Evaluation over the game"></svg><p class="tiny faint" style="margin-top:6px">Advantage over the game. Above the line favours White. Tap to jump.</p></div>
+      <div class="inset small" id="plyNote" aria-live="polite"></div>
+    </div>
+    <div class="stack" style="--gap:16px">
+      <section class="panel" style="padding:16px"><h3 style="margin-bottom:10px">Moves</h3><div class="moves" id="anMoves" style="max-height:320px"></div>
+        <div class="row small muted" style="margin-top:10px;gap:10px">${['best', 'good', 'inaccuracy', 'mistake', 'blunder'].map(k => `<span><i class="cls ${k}"></i>${CLS_LABEL[k]}</span>`).join('')}</div></section>
+      <section class="panel stack" style="--gap:12px" aria-labelledby="coachH">
+        <div class="row between"><h3 id="coachH">Ask the coach</h3><span class="badge" id="coachMode">Coach</span></div>
+        <div class="chat" id="chat"><div class="msg coach">I’ve gone through your game. Ask me anything about it — I’ll explain the idea, not just the engine line.</div></div>
+        <div class="chips" id="chips">${['Why was my worst move bad?', 'What should I have done?', 'What should I practise next?'].map(q => `<button>${q}</button>`).join('')}</div>
+        <form class="row" id="coachForm" style="gap:8px;flex-wrap:nowrap"><input class="input" id="coachIn" placeholder="Ask about this game" aria-label="Ask the coach" maxlength="300"><button class="btn btn-primary" type="submit">Ask</button></form>
+      </section>
+    </div>
+  </div>`;
+  // board replay
+  const fens = [rec.startFen || Chess.START]; const g = new Chess.Game(rec.startFen || Chess.START); const hist = [];
+  for (const u of rec.moves) { const m = g.move(u); if (!m) break; fens.push(m.fenAfter); hist.push(m); }
+  const bv = new BoardView($('#anBoard'), { game: new Chess.Game(fens[0]), orientation: me, canMove: () => false });
+  let ply = c.keyFen ? an.keyIdx : fens.length - 1; // start at the critical moment
+  function show(n) {
+    ply = Math.max(0, Math.min(fens.length - 1, n));
+    bv.setPosition(fens[ply], ply ? hist[ply - 1] : null);
+    bv.hint = null;
+    $('#plyLbl').textContent = ply ? `Move ${Math.ceil(ply / 2)}${ply % 2 ? '' : '…'} ${hist[ply - 1].san}` : 'Start';
+    $$('#anMoves .m').forEach(x => x.classList.toggle('cur', +x.dataset.i === ply - 1));
+    const pl = an.plies[ply - 1]; const note = $('#plyNote');
+    if (!pl) note.innerHTML = 'Starting position. Use the arrows or tap a move.';
+    else {
+      const who = pl.c === me ? 'You' : (rec.mode === 'ai' ? AI[rec.ai].name : 'Opponent');
+      note.innerHTML = `<b><i class="cls ${pl.cls}"></i>${who}: ${esc(pl.san)} — ${CLS_LABEL[pl.cls]}.</b>${pl.loss > 60 && pl.best ? ` <span class="muted">${esc(pl.best)} was stronger.</span>` : ''}`;
+    }
+    if (ply === an.keyIdx && c.keyFen) { $('#plyNote').innerHTML += `<br><span class="muted">This is the critical position. The board shows it before your move.</span>`; }
+    drawGraph();
+  }
+  // move list
+  let mh = '';
+  for (let i = 0; i < an.plies.length; i += 2) {
+    const a = an.plies[i], b = an.plies[i + 1];
+    mh += `<span class="n">${i / 2 + 1}.</span><span class="m" data-i="${i}"><i class="cls ${a.cls}"></i>${a.san}</span><span class="m" data-i="${i + 1}">${b ? `<i class="cls ${b.cls}"></i>${b.san}` : ''}</span>`;
+  }
+  $('#anMoves').innerHTML = mh;
+  $$('#anMoves .m').forEach(x => x.onclick = () => { if (an.plies[+x.dataset.i]) show(+x.dataset.i + 1); });
+  $$('[data-nav]').forEach(b => b.onclick = () => { const k = b.dataset.nav; show(k === 'first' ? 0 : k === 'last' ? fens.length - 1 : k === 'prev' ? ply - 1 : ply + 1); });
+  root.onkeydown = null;
+  document.onkeydown = e => { if (!$('#anBoard') || e.target.closest('input')) return; if (e.key === 'ArrowLeft') show(ply - 1); if (e.key === 'ArrowRight') show(ply + 1); };
+  function drawGraph() {
+    const n = an.plies.length; if (!n) return;
+    const W = 400, H = 110, y = v => H / 2 - Math.max(-1, Math.min(1, v / 600)) * (H / 2 - 6);
+    const pts = [[0, y(0)]].concat(an.plies.map((p, i) => [(i + 1) * W / n, y(p.ev)]));
+    const line = pts.map(([x, yy]) => `${x.toFixed(1)},${yy.toFixed(1)}`).join(' ');
+    const cx = ply * W / n;
+    const marks = an.plies.map((p, i) => p.c === me && (p.cls === 'blunder' || p.cls === 'mistake') ? `<circle cx="${((i + 1) * W / n).toFixed(1)}" cy="${y(p.ev).toFixed(1)}" r="3.5" fill="${p.cls === 'blunder' ? 'var(--bad)' : '#E38A4A'}"/>` : '').join('');
+    $('#evg').innerHTML = `<polygon points="0,${H / 2} ${line} ${W},${H / 2}" fill="var(--ivory)" opacity=".16"/><line x1="0" x2="${W}" y1="${H / 2}" y2="${H / 2}" stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 3"/><polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>${marks}<line x1="${cx}" x2="${cx}" y1="0" y2="${H}" stroke="var(--text)" stroke-width="1.2" opacity=".5" vector-effect="non-scaling-stroke"/>`;
+  }
+  $('#evg').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); show(Math.round((e.clientX - r.left) / r.width * an.plies.length)); };
+  $('#againBtn').onclick = e => { e.preventDefault(); Play.cur = null; Play.cfg.mode = rec.mode; if (rec.ai) Play.cfg.ai = rec.ai; location.hash = '#/play'; };
+  show(ply);
+  mountCoach(rec);
+}
+function mountCoach(rec) {
+  const hist = []; let busy = false; const chat = $('#chat');
+  getSample().then(s => { const b = $('#coachMode'); if (b) { b.textContent = s ? 'Live AI coach' : 'Offline coach'; b.className = 'badge ' + (s ? 'badge-gold' : ''); } });
+  async function ask(q) {
+    if (busy || !q.trim()) return; busy = true;
+    const p = P(); p.coachQs = (p.coachQs || 0) + 1; Store.save();
+    hist.push({ who: 'me', text: q });
+    chat.insertAdjacentHTML('beforeend', `<div class="msg me">${esc(q)}</div><div class="msg coach" id="pending"><span class="thinking">Thinking</span></div>`);
+    chat.scrollTop = chat.scrollHeight;
+    const out = $('#pending'); out.removeAttribute('id');
+    const sample = await getSample();
+    let answer = null;
+    if (sample) {
+      try {
+        const r = await sample(coachPrompt(rec, rec.an, hist), { modelTier: 'quick', cache: false, onText: ({ text }) => { out.textContent = text; chat.scrollTop = chat.scrollHeight; } });
+        answer = r.text;
+      } catch (e) {
+        if (e && e.text) answer = e.text;
+        if (e && e.code === 'not_granted') { samplePromise = Promise.resolve(null); const b = $('#coachMode'); if (b) { b.textContent = 'Offline coach'; b.className = 'badge'; } }
+      }
+    }
+    if (!answer) { await sleep(500); answer = offlineCoach(q, rec, rec.an); }
+    out.textContent = answer; hist.push({ who: 'coach', text: answer });
+    chat.scrollTop = chat.scrollHeight; busy = false;
+  }
+  $$('#chips button').forEach(b => b.onclick = () => ask(b.textContent));
+  $('#coachForm').onsubmit = e => { e.preventDefault(); const v = $('#coachIn').value; $('#coachIn').value = ''; ask(v); };
+}
+
+/* ---------- practice position ---------- */
+function viewPractice(id) {
+  const rec = P().games.find(x => x.id === id);
+  if (!rec || !rec.an || !rec.an.coach.keyFen) { location.hash = '#/analysis/' + id; return { html: '' }; }
+  const c = rec.an.coach;
+  const html = shell('play', `<div class="wrap page"><a class="back" href="#/analysis/${id}">${icon('back')}Back to review</a>
+    <div class="lesson-layout"><div id="prBoard"></div>
+    <div class="stack" style="--gap:16px">
+      <div class="stack" style="--gap:6px"><p class="muted small">Practice position · move ${esc(c.keyNo)}</p><h2>Find a better move</h2>
+      <p class="muted">In the game you played ${esc(c.keyMove)}. You’re ${rec.color === 'w' ? 'White' : 'Black'}. What would you play now?</p></div>
+      <div id="prFb" class="feedback neutral" aria-live="polite">Make your move on the board.</div>
+      <div class="row"><button class="btn btn-secondary" id="prReset" hidden>Try again</button><button class="btn btn-ghost" id="prHint">Show a hint</button><button class="btn btn-ghost" id="prAns">Show the answer</button></div>
+    </div></div></div>`);
+  return {
+    html, mount() {
+      const g = new Chess.Game(c.keyFen); let locked = false;
+      const bv = new BoardView($('#prBoard'), {
+        game: g, orientation: rec.color, canMove: t => !locked && t === rec.color,
+        onMove: async (f, t, pr) => {
+          const uci = f + t + (pr || '');
+          const base = new Chess.Game(c.keyFen); const r = Chess.search(base, { depth: 2 });
+          const mine = r.scored.find(x => Chess.uciOf(x.m) === uci || Chess.uciOf(x.m) === uci + 'q');
+          const m = g.move({ from: f, to: t, promo: pr }); if (!m) return false; bv.last = m; locked = true;
+          const loss = mine ? clampSc(r.score) - clampSc(mine.sc) : 999;
+          const fb = $('#prFb');
+          if (loss <= 50) { fb.className = 'feedback ok'; fb.innerHTML = `<div>Excellent. ${esc(m.san)} keeps control.${m.uci !== c.keyBestUci ? `<p>${esc(c.keyBest)} was also strong.</p>` : ''}</div>`; addXP(10, 'Practice solved'); Store.save(); }
+          else { fb.className = 'feedback no'; fb.innerHTML = `<div>Not quite. ${esc(m.san)} still leaves problems.<p>Check what your opponent can capture or attack after your move.</p></div>`; $('#prReset').hidden = false; }
+          return true;
+        }
+      });
+      $('#prReset').onclick = () => { g.load(c.keyFen); locked = false; bv.last = null; bv.hint = null; bv.render(); $('#prReset').hidden = true; const fb = $('#prFb'); fb.className = 'feedback neutral'; fb.textContent = 'Make your move on the board.'; };
+      $('#prHint').onclick = () => { bv.hint = c.keyBestUci.slice(0, 2); bv.render(); };
+      $('#prAns').onclick = () => { const fb = $('#prFb'); fb.className = 'feedback neutral'; fb.innerHTML = `<div>The strongest move was ${esc(c.keyBest)}.<p>${esc(c.next)}</p></div>`; bv.hint = c.keyBestUci.slice(2, 4); bv.render(); };
+    }
+  };
+}
+
+/* ============ VIEWS 3: puzzles, learn, profile, challenges, stories, leaderboard, router ============ */
+/* ---------- puzzles ---------- */
+function viewPuzzles() {
+  const p = P(); rollCounters();
+  const d = dailyPuzzle(); const acc = puzzleAccuracy(p); const solvedN = Object.keys(p.pz.solved).length;
+  let filter = 'All';
+  const html = shell('puzzle', `<div class="wrap page">
+    <div class="stack" style="--gap:6px;margin-bottom:22px"><h1>Puzzles</h1><p class="muted">Find the move. Train the pattern.</p></div>
+    <div class="dash-grid">
+      <a class="panel tile-link" href="#/puzzles/daily" style="display:grid;gap:18px;grid-template-columns:minmax(0,180px) 1fr;align-items:center">
+        <div>${miniBoardSVG(d.fen, { cls: 'board-mini', label: 'Daily puzzle', flip: new Chess.Game(d.fen).turn === 'b' })}</div>
+        <div class="stack" style="--gap:8px"><p class="muted small">Daily Puzzle</p><h2>${esc(d.title)}</h2><p class="small muted">Difficulty: ${d.difficulty}</p><p>Find the best move.</p><span class="btn btn-primary btn-sm" style="justify-self:start;width:max-content">${p.pz.solved[d.id] ? 'Solve again' : 'Solve Puzzle'}</span></div>
+      </a>
+      <div class="stats" style="grid-template-columns:repeat(2,1fr)">
+        ${[[solvedN + '/' + DATA.puzzles.length, 'Solved'], [acc == null ? '—' : acc + '%', 'Accuracy'], [p.pz.run, 'Current run'], [p.c.dayPuzzles + '/3', 'Today']].map(([v, l]) => `<div class="tile stat"><b>${v}</b><span>${l}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="section-head"><h3>All puzzles</h3><div class="tabs" role="tablist" id="pzTabs">${['All', 'Beginner', 'Intermediate', 'Advanced'].map(t => `<button role="tab" aria-selected="${t === 'All'}">${t}</button>`).join('')}</div></div>
+    <div class="pz-list" id="pzList"></div></div>`);
+  function list() {
+    $('#pzList').innerHTML = DATA.puzzles.filter(z => filter === 'All' || z.difficulty === filter).map(z => `<a class="pz" href="#/puzzles/${z.id}">
+      <div class="mini">${miniBoardSVG(z.fen, { flip: new Chess.Game(z.fen).turn === 'b' })}</div>
+      <b>${esc(z.title)}</b><span class="row between small" style="margin-top:4px"><span class="muted">${z.difficulty}</span>${p.pz.solved[z.id] ? '<span class="badge badge-good">Solved</span>' : ''}</span></a>`).join('');
+  }
+  return { html, mount() { list(); $$('#pzTabs button').forEach(b => b.onclick = () => { filter = b.textContent; $$('#pzTabs button').forEach(x => x.setAttribute('aria-selected', x === b)); list(); }); } };
+}
+function viewPuzzle(id) {
+  const p = P();
+  let pz = id === 'daily' ? dailyPuzzle() : id === 'next' ? (DATA.puzzles.find(z => !p.pz.solved[z.id]) || DATA.puzzles[Math.floor(Math.random() * DATA.puzzles.length)]) : DATA.puzzles.find(z => z.id === id);
+  if (!pz) pz = DATA.puzzles[0];
+  const g = new Chess.Game(pz.fen); const me = g.turn;
+  const moves = Math.ceil(pz.solution.length / 2);
+  const html = shell('puzzle', `<div class="wrap page"><a class="back" href="#/puzzles">${icon('back')}All puzzles</a>
+    <div class="lesson-layout"><div id="pzBoard"></div>
+    <div class="stack" style="--gap:16px">
+      <div class="stack" style="--gap:6px"><p class="muted small">${id === 'daily' ? 'Daily Puzzle' : 'Puzzle'} · Difficulty: ${pz.difficulty}</p><h2>${esc(pz.title)}</h2>
+        <p><b>${me === 'w' ? 'White' : 'Black'} to move.</b> <span class="muted">${pz.mate ? 'Find the checkmate.' : 'Find the best move.'}</span></p></div>
+      <div class="row small muted" id="pzProg">${moves > 1 ? `Move <b class="num" id="pzStep">1</b>&nbsp;of ${moves}` : 'One move to find'}</div>
+      <div id="pzFb" class="feedback neutral" aria-live="polite">Your move.</div>
+      <div class="row" id="pzActions"><button class="btn btn-secondary" id="pzRetry" hidden>Try Again</button><button class="btn btn-ghost" id="pzHint">Hint</button><button class="btn btn-ghost" id="pzShow">Show solution</button></div>
+      <div class="row" id="pzNext" hidden><a class="btn btn-primary" href="#/puzzles/next" id="pzNextBtn">Next puzzle</a><a class="btn btn-ghost" href="#/home">Dashboard</a></div>
+    </div></div></div>`);
+  return {
+    html, mount() {
+      let step = 0, failed = false, done = false, busy = false, counted = false;
+      const fb = $('#pzFb');
+      const bv = new BoardView($('#pzBoard'), {
+        game: g, orientation: me, canMove: t => !done && !busy && t === me,
+        onMove: async (f, t, pr) => {
+          const m = g.move({ from: f, to: t, promo: pr }); if (!m) return false;
+          bv.last = m;
+          if (!counted) { counted = true; p.pz.attempts++; }
+          const expected = pz.solution[step];
+          const correct = m.uci === expected || (pz.mate && step === pz.solution.length - 1 && g.status().reason === 'checkmate');
+          if (!correct) {
+            failed = true; busy = true; p.pz.run = 0; Store.save();
+            fb.className = 'feedback no'; fb.innerHTML = `<div>Not quite.<p>${esc(pz.hint)}</p></div>`;
+            $('#pzRetry').hidden = false;
+            await sleep(700); g.undo(); bv.last = g.hist[g.hist.length - 1] || null; bv.render(); busy = false;
+            return true;
+          }
+          step++;
+          if (step >= pz.solution.length) return solved();
+          fb.className = 'feedback ok'; fb.innerHTML = '<div>Good. Keep going.</div>';
+          busy = true; await sleep(550);
+          const r = g.move(pz.solution[step]); bv.last = r; step++; bv.render(); busy = false;
+          const s = $('#pzStep'); if (s) s.textContent = Math.floor(step / 2) + 1;
+          fb.className = 'feedback neutral'; fb.textContent = `${r.san}. Your move.`;
+          return true;
+        }
+      });
+      function solved() {
+        done = true; rollCounters();
+        const first = !p.pz.solved[pz.id];
+        fb.className = 'feedback ok'; fb.innerHTML = `<div>${failed ? 'Solved.' : 'Excellent. You saw the tactic.'}<p>${esc(pz.theme)}: ${esc(pz.idea)}</p></div>`;
+        if (!failed) { p.pz.firstTry++; p.pz.run++; p.pz.bestRun = Math.max(p.pz.bestRun, p.pz.run); }
+        p.pz.today = p.pz.today && p.pz.today.d === todayKey() ? p.pz.today : { d: todayKey(), ids: [] };
+        if (!p.pz.today.ids.includes(pz.id)) { p.pz.today.ids.push(pz.id); p.c.dayPuzzles++; }
+        p.pz.solved[pz.id] = p.pz.solved[pz.id] || Date.now();
+        touchStreak(); addXP(first ? (failed ? 8 : 15) : 5, 'Puzzle solved'); checkAchievements(); Store.save();
+        $('#pzActions').hidden = true; $('#pzNext').hidden = false; $('#pzNextBtn').focus();
+        if (p.c.dayPuzzles === 3) setTimeout(() => toast('Daily mission complete — claim it on your dashboard'), 1200);
+        return true;
+      }
+      $('#pzRetry').onclick = () => { $('#pzRetry').hidden = true; fb.className = 'feedback neutral'; fb.textContent = 'Your move.'; bv.hint = null; bv.render(); };
+      $('#pzHint').onclick = () => { failed = true; bv.hint = pz.solution[step].slice(0, 2); bv.render(); fb.className = 'feedback neutral'; fb.innerHTML = `<div>Hint<p>${esc(pz.hint)}</p></div>`; };
+      $('#pzShow').onclick = async () => {
+        failed = true; done = true; p.pz.run = 0; if (!counted) { counted = true; p.pz.attempts++; } Store.save();
+        for (let i = step; i < pz.solution.length; i++) { const r = g.move(pz.solution[i]); bv.last = r; bv.render(); await sleep(600); }
+        fb.className = 'feedback neutral'; fb.innerHTML = `<div>Solution shown.<p>${esc(pz.theme)}: ${esc(pz.idea)}</p></div>`;
+        $('#pzActions').hidden = true; $('#pzNext').hidden = false;
+      };
+    }
+  };
+}
+
+/* ---------- learn ---------- */
+function viewLearn() {
+  const p = P(); const done = Object.keys(p.lessons).length, total = DATA.lessons.length;
+  const next = startLesson();
+  const html = shell('learn', `<div class="wrap page">
+    <div class="row between" style="margin-bottom:22px;align-items:flex-end"><div class="stack" style="--gap:6px"><h1>Learn</h1><p class="muted">Read the idea. Play it on the board.</p></div>
+    <a class="btn btn-primary" href="#/learn/${next.id}">Continue: ${esc(next.title)}</a></div>
+    <div class="panel row" style="gap:18px;margin-bottom:26px"><div class="stat"><b class="num">${done}/${total}</b><span>Lessons completed</span></div><div class="bar" style="flex:1;min-width:160px"><i style="width:${100 * done / total}%"></i></div></div>
+    <div class="grid g2">${['Beginner', 'Strategy', 'Tactics', 'Endgame'].map(cat => {
+      const ls = DATA.lessons.filter(l => l.cat === cat); const d = ls.filter(l => p.lessons[l.id]).length;
+      return `<section class="panel" style="padding:18px 20px"><div class="row between" style="margin-bottom:6px"><h2 style="font-size:1.5rem">${cat}</h2><span class="small muted num">${d}/${ls.length}</span></div>
+        ${ls.map((l, i) => `<a class="lesson-row" href="#/learn/${l.id}"><span class="ix ${p.lessons[l.id] ? 'done' : ''}" aria-hidden="true">${p.lessons[l.id] ? '✓' : pad(i + 1)}</span><span class="grow"><b>${esc(l.title)}</b><br><span class="small muted">${l.mins} min${p.lessons[l.id] ? ' · completed' : ''}</span></span>${icon('next')}</a>`).join('')}</section>`;
+    }).join('')}</div></div>`);
+  return { html };
+}
+function viewLesson(id) {
+  const p = P(); const l = DATA.lessons.find(x => x.id === id) || DATA.lessons[0];
+  const ls = DATA.lessons.filter(x => x.cat === l.cat); const i = ls.indexOf(l);
+  const nextL = DATA.lessons[DATA.lessons.indexOf(l) + 1];
+  const g = new Chess.Game(l.fen);
+  const html = shell('learn', `<div class="wrap page"><a class="back" href="#/learn">${icon('back')}Learn</a>
+    <div class="lesson-layout">
+      <div id="lsBoard"></div>
+      <div class="stack" style="--gap:16px">
+        <div class="stack" style="--gap:6px"><p class="muted small">${l.cat} ${pad(i + 1)} of ${ls.length}${p.lessons[l.id] ? ' · completed' : ''}</p><h1 style="font-size:clamp(1.8rem,4vw,2.4rem)">${esc(l.title)}</h1></div>
+        ${l.body.map(b => `<p class="text-2">${esc(b)}</p>`).join('')}
+        <div class="inset"><p class="small muted">Your task</p><p style="font-weight:600;margin-top:4px">${esc(l.task)}</p></div>
+        <div id="lsFb" aria-live="polite"></div>
+        <div class="row" id="lsDone" hidden>${nextL ? `<a class="btn btn-primary" href="#/learn/${nextL.id}">Next lesson</a>` : ''}<a class="btn btn-secondary" href="#/learn">All lessons</a><a class="btn btn-ghost" href="#/puzzles/next">Solve a puzzle</a></div>
+      </div>
+    </div></div>`);
+  return {
+    html, mount() {
+      let done = false, busy = false;
+      const bv = new BoardView($('#lsBoard'), {
+        game: g, orientation: g.turn, canMove: t => !done && !busy && t === g.turn,
+        onMove: async (f, t, pr) => {
+          const m = g.move({ from: f, to: t, promo: pr }); if (!m) return false; bv.last = m;
+          const ok = l.mate ? g.status().reason === 'checkmate' : l.accept.includes(m.uci);
+          const fb = $('#lsFb');
+          if (ok) {
+            done = true; const first = !p.lessons[l.id];
+            fb.innerHTML = `<div class="feedback ok"><div>Lesson complete.<p>${esc(m.san)} — exactly the idea.</p></div></div>`;
+            if (first) { p.lessons[l.id] = Date.now(); rollCounters(); p.c.weekLessons++; p.c.lessonPending = true; addXP(25, 'Lesson complete'); }
+            touchStreak(); checkAchievements(); Store.save();
+            $('#lsDone').hidden = false;
+          } else {
+            busy = true;
+            fb.innerHTML = `<div class="feedback no"><div>Not the move we’re after.<p>${esc(m.san)} is legal, but look again at the task.</p></div></div>`;
+            await sleep(900); g.undo(); bv.last = null; bv.render(); busy = false;
+          }
+          return true;
+        }
+      });
+    }
+  };
+}
+
+/* ---------- profile ---------- */
+function viewProfile() {
+  const p = P(); const lv = levelOf(p.xp); const acc = puzzleAccuracy(p);
+  const theme = localStorage.getItem('sankofa.theme') || 'system';
+  const html = shell('profile', `<div class="wrap page">
+    <section class="profile-head" style="margin-bottom:26px">
+      <span class="avatar">${esc(p.account.firstName[0].toUpperCase())}</span>
+      <div class="stack" style="--gap:4px;flex:1;min-width:200px">
+        <h1 class="display" style="font-size:clamp(2.2rem,6vw,3rem)">${esc(p.account.firstName)}</h1>
+        <p class="muted">@${esc(p.account.username)} <span class="flag">${flag(p.account.country)}</span> ${esc(DATA.countries[p.account.country] || '')}</p>
+      </div>
+      <div class="panel" style="padding:16px 18px;min-width:240px">
+        <div class="row between"><b>Sankofa Level ${lv.n}</b><span class="badge badge-gold">${lv.name}</span></div>
+        <div class="bar" style="margin:10px 0 6px"><i style="width:${lv.pct}%"></i></div>
+        <p class="tiny muted num">${lv.next ? `${p.xp} / ${lv.next.xp} XP to ${lv.next.name}` : `${p.xp} XP · top level reached`}</p>
+      </div>
+    </section>
+    <div class="grid g2">
+      <section class="panel"><h3 style="margin-bottom:14px">Chess</h3><div class="grid g3 kv" style="gap:14px">
+        ${[[p.rating, 'Rating'], [p.stats.games, 'Games'], [p.stats.wins, 'Wins'], [p.stats.losses, 'Losses'], [p.stats.draws, 'Draws'], [p.peak, 'Peak rating']].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}</div></section>
+      <section class="panel"><h3 style="margin-bottom:14px">Learning</h3><div class="grid g3 kv" style="gap:14px">
+        ${[[Object.keys(p.lessons).length + '/' + DATA.lessons.length, 'Lessons completed'], [acc == null ? '—' : acc + '%', 'Puzzle accuracy'], [p.streak + (p.streak === 1 ? ' day' : ' days'), 'Current streak'], [Object.keys(p.pz.solved).length, 'Puzzles solved'], [p.bestStreak, 'Best streak'], [p.xp, 'Total XP']].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('')}</div></section>
+    </div>
+    <div class="section-head"><h3>Achievements</h3><span class="small muted">${Object.keys(p.ach || {}).length} of ${ACHIEVEMENTS.length}</span></div>
+    <div class="ach">${ACHIEVEMENTS.map(a => `<div class="${(p.ach || {})[a.id] ? '' : 'locked'}"><span class="ico" aria-hidden="true">${a.ico}</span><b class="small">${a.name}</b><span class="tiny muted">${a.desc}</span></div>`).join('')}</div>
+    <div class="section-head"><h3>Recent games</h3><a class="link small" href="#/play">Play</a></div>
+    ${p.games.length ? `<div class="panel" style="padding:6px 18px">${p.games.slice(0, 8).map(g => `<a class="lesson-row" href="#/analysis/${g.id}"><span class="ix" style="background:${g.outcome === 'win' ? 'color-mix(in srgb,var(--good) 25%,transparent)' : g.outcome === 'loss' ? 'color-mix(in srgb,var(--bad) 22%,transparent)' : 'var(--surface-3)'}">${g.outcome === 'win' ? 'W' : g.outcome === 'loss' ? 'L' : 'D'}</span><span class="grow"><b>${outcomeLabel(g)} vs ${esc(oppName(g))}</b><br><span class="small muted">${esc(g.reason)} · ${Math.ceil(g.moves.length / 2)} moves · ${new Date(g.date).toLocaleDateString()}</span></span>${g.mode === 'ai' ? `<span class="small num" style="color:${g.rDelta >= 0 ? 'var(--good)' : 'var(--bad)'}">${g.rDelta >= 0 ? '+' : ''}${g.rDelta}</span>` : ''}${icon('next')}</a>`).join('')}</div>` : `<div class="empty"><p>No games yet. Your reviews will live here.</p><a class="btn btn-primary" style="margin-top:12px" href="#/play">Play a game</a></div>`}
+    <div class="grid g2" style="margin-top:28px">
+      <section class="panel"><h3 style="margin-bottom:6px">Sankofa levels</h3><p class="small muted" style="margin-bottom:14px">Levels track your training on Sankofa Chess. They are not official chess titles.</p>
+        <div class="ladder">${DATA.levels.map(x => `<div class="${x.n === lv.n ? 'here' : ''}"><span>${x.n}. ${x.name}</span><span class="num">${x.xp} XP</span></div>`).join('')}</div></section>
+      <section class="panel stack" style="--gap:16px"><h3>Settings</h3>
+        <div class="field"><label>Appearance</label><div class="seg" id="themeSeg">${[['system', 'System'], ['dark', 'Dark'], ['light', 'Light']].map(([v, l]) => `<button aria-pressed="${theme === v}" data-v="${v}">${l}</button>`).join('')}</div></div>
+        <div class="field"><label>Account</label><p class="small muted">${esc(p.account.email)} · ${esc(p.account.level)}${p.goal ? ' · Goal: ' + esc(p.goal) : ''}</p></div>
+        <div class="row"><button class="btn btn-secondary" id="logout">Log out</button><button class="btn btn-danger" id="reset">Delete account data</button></div>
+        <p class="tiny faint">${Store.db ? 'Progress syncs privately to your Claude account.' : 'Progress is saved in this browser.'}</p>
+      </section>
+    </div>
+    <div class="row" style="margin-top:22px;gap:18px"><a class="link" href="#/challenges">Challenges</a><a class="link" href="#/leaderboard">Leaderboard</a><a class="link" href="#/stories">Sankofa Stories</a><a class="link" href="#/">About Sankofa Chess</a></div>
+  </div>`);
+  return {
+    html, mount() {
+      $$('#themeSeg button').forEach(b => b.onclick = () => { try { localStorage.setItem('sankofa.theme', b.dataset.v); } catch (e) { } applyTheme(); $$('#themeSeg button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      $('#logout').onclick = () => { p.session = false; Store.save(); Play.cur = null; location.hash = '#/'; };
+      $('#reset').onclick = () => modal(`<h3>Delete all your data?</h3><p class="muted" style="margin:8px 0 20px">Your account, games, rating and progress will be removed. This can’t be undone.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-ghost" data-x>Cancel</button><button class="btn btn-danger" data-ok>Delete everything</button></div>`, (s, close) => {
+        $('[data-x]', s).onclick = close; $('[data-ok]', s).onclick = () => { close(); Store.clear(); Play.cur = null; location.hash = '#/'; render(); };
+      });
+    }
+  };
+}
+function applyTheme() {
+  let t = 'system'; try { t = localStorage.getItem('sankofa.theme') || 'system'; } catch (e) { }
+  if (t === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.dataset.theme = t;
+}
+
+/* ---------- challenges ---------- */
+function viewChallenges() {
+  const p = P(); rollCounters(); const lv = levelOf(p.xp);
+  const html = shell('challenges', `<div class="wrap page">
+    <div class="row between" style="margin-bottom:22px;align-items:flex-end"><div class="stack" style="--gap:6px"><h1>Challenges</h1><p class="muted">Small goals. Real progress. Earn XP to climb the Sankofa levels.</p></div>
+    <span class="badge badge-gold num">${p.xp} XP · Level ${lv.n} ${lv.name}</span></div>
+    <div class="grid g2" id="chList"></div>
+    <p class="small faint" style="margin-top:22px">Daily challenges reset at midnight. Weekly challenges reset on Monday.</p></div>`);
+  function draw() {
+    $('#chList').innerHTML = CHALLENGES.map(ch => {
+      const s = challengeState(ch);
+      return `<section class="panel stack" style="--gap:10px"><div class="row between"><span class="badge">${ch.type}</span><span class="small muted num">+${ch.reward} XP</span></div>
+        <h3>${ch.title}</h3><p class="small muted">${ch.desc}</p>
+        <div class="row" style="gap:12px"><div class="bar" style="flex:1"><i style="width:${100 * s.v / ch.target}%"></i></div><b class="num small">${s.v}/${ch.target}</b></div>
+        <div>${s.claimed ? `<span class="badge badge-good">Claimed</span>` : s.done ? `<button class="btn btn-primary btn-sm" data-claim="${ch.id}">Claim ${ch.reward} XP</button>` : `<a class="btn btn-secondary btn-sm" href="${ch.go}">Start</a>`}</div></section>`;
+    }).join('');
+    $$('[data-claim]').forEach(b => b.onclick = () => { claimChallenge(b.dataset.claim); render(); });
+  }
+  return { html, mount: draw };
+}
+
+/* ---------- stories ---------- */
+function viewStories() {
+  const html = shell('stories', `<div class="wrap page">
+    <div class="stack" style="--gap:8px;margin-bottom:26px;max-width:40em"><h1>Sankofa Stories</h1><p class="muted">African philosophy, history and strategic traditions — and what they teach at the board.</p></div>
+    <div class="grid g3">${DATA.stories.map(s => `<a class="tile tile-link story-card" href="#/stories/${s.id}"><div class="art">${symbolArt[s.symbol]()}</div><div class="txt stack" style="--gap:6px"><span class="small muted">${esc(s.cat)} · ${s.read} min read</span><h3>${esc(s.title)}</h3><p class="small muted">${esc(s.dek)}</p></div></a>`).join('')}</div></div>`);
+  return { html };
+}
+function viewStory(id) {
+  const s = DATA.stories.find(x => x.id === id) || DATA.stories[0]; const i = DATA.stories.indexOf(s); const nx = DATA.stories[(i + 1) % DATA.stories.length];
+  const html = shell('stories', `<div class="wrap page"><article class="article"><a class="back" href="#/stories">${icon('back')}Stories</a>
+    <div style="width:88px;color:var(--gold);margin:10px 0 18px">${symbolArt[s.symbol]()}</div>
+    <p class="small muted">${esc(s.cat)} · ${s.read} min read</p>
+    <h1 class="display" style="font-size:clamp(2.2rem,6vw,3.4rem);margin-top:8px">${esc(s.title)}</h1>
+    <p class="dek">${esc(s.dek)}</p>
+    ${s.body.map(b => `<p>${esc(b)}</p>`).join('')}
+    <p class="src">Sources: ${esc(s.source)}</p>
+    <a class="tile tile-link row between" style="margin-top:28px" href="#/stories/${nx.id}"><span><span class="small muted">Next story</span><br><b>${esc(nx.title)}</b></span>${icon('next')}</a>
+  </article></div>`);
+  return { html };
+}
+
+/* ---------- leaderboard ---------- */
+function viewLeaderboard() {
+  const p = P(); let tab = 'Global';
+  const html = shell('leaderboard', `<div class="wrap page" style="max-width:820px">
+    <div class="stack" style="--gap:6px;margin-bottom:20px"><h1>Leaderboard</h1><p class="muted">Ratings from games against the Sankofa computer opponents.</p></div>
+    <div class="tabs" role="tablist" id="lbTabs" style="margin-bottom:16px">${['Global', 'Country', 'Friends'].map(t => `<button role="tab" aria-selected="${t === tab}">${t === 'Country' ? flag(p.account.country) + ' ' + esc(DATA.countries[p.account.country] || 'Country') : t}</button>`).join('')}</div>
+    <div class="panel" style="padding:4px 6px;overflow-x:auto" id="lbBody"></div>
+    <p class="tiny faint" style="margin-top:12px">Other players shown here are demo profiles until live rated play launches.</p></div>`);
+  function draw() {
+    const meRow = { u: p.account.username, c: p.account.country, r: p.rating, l: levelOf(p.xp).n, me: true };
+    let rows = DATA.players.concat([meRow]);
+    if (tab === 'Country') rows = rows.filter(r => r.c === p.account.country);
+    if (tab === 'Friends') { $('#lbBody').innerHTML = `<div class="empty" style="border:0"><p><b>Friends arrive with online play.</b></p><p class="small" style="margin-top:6px">Soon you’ll be able to add friends, challenge them, and compare progress here.</p></div>`; return; }
+    rows.sort((a, b) => b.r - a.r);
+    $('#lbBody').innerHTML = `<table class="lb"><thead><tr><th>Rank</th><th>Player</th><th>Rating</th><th>Level</th></tr></thead><tbody>${rows.map((r, i) => `<tr class="${r.me ? 'me' : ''}"><td class="num">${i + 1}</td><td><span class="flag">${flag(r.c)}</span> ${esc(r.u)}${r.me ? ' <span class="badge badge-gold">You</span>' : ''}</td><td class="num">${r.r}</td><td class="small muted">${r.l} ${DATA.levels[r.l - 1].name}</td></tr>`).join('')}</tbody></table>`;
+  }
+  return { html, mount() { draw(); $$('#lbTabs button').forEach((b, i) => b.onclick = () => { tab = ['Global', 'Country', 'Friends'][i]; $$('#lbTabs button').forEach(x => x.setAttribute('aria-selected', x === b)); draw(); }); } };
+}
+
+/* ---------- demo profile ---------- */
+function gameFromSan(sans) {
+  const g = new Chess.Game(); const out = [];
+  for (const s of sans) { const m = g.legal().find(x => g.san(x).replace(/[+#]/g, '') === s.replace(/[+#!?]/g, '')); if (!m) break; const u = Chess.uciOf(m); g.move(u); out.push(u); }
+  return out;
+}
+function makeDemoProfile() {
+  const p = newProfile({ firstName: 'Marwan', username: 'marwan', email: 'demo@sankofachess.com', pw: '', country: 'GH', level: 'Intermediate' });
+  Object.assign(p, { demo: true, onboarded: true, goal: 'Improve tactics', rating: 1247, peak: 1268, xp: 2140, streak: 6, bestStreak: 9, lastActive: todayKey(), reviews: 4 });
+  p.stats = { games: 86, wins: 48, losses: 31, draws: 7 };
+  p.pz = { solved: { p01: 1, p02: 1, p03: 1, p04: 1, p05: 1, p07: 1, p11: 1 }, attempts: 62, firstTry: 47, run: 2, bestRun: 7, today: { d: todayKey(), ids: ['p01'] } };
+  ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 's1', 's2', 's3', 's5', 't1', 't2', 't3', 't6'].forEach(id => p.lessons[id] = Date.now());
+  p.c = { day: todayKey(), dayPuzzles: 1, week: weekKey(), weekGames: 4, weekLessons: 1, lessonPending: true, lessonWin: false };
+  const day = 864e5, now = Date.now();
+  const trap = gameFromSan('e4 e5 Nf3 Nc6 Bc4 Nd4 Nxe5 Qg5 Nxf7 Qxg2 Rf1 Qxe4+ Be2 Nf3#'.split(' '));
+  const opera = gameFromSan('e4 e5 Nf3 d6 d4 Bg4 dxe5 Bxf3 Qxf3 dxe5 Bc4 Nf6 Qb3 Qe7 Nc3 c6 Bg5 b5 Nxb5 cxb5 Bxb5+ Nbd7 O-O-O Rd8 Rxd7 Rxd7 Rd1 Qe6 Bxd7+ Nxd7 Qb8+ Nxb8 Rd8#'.split(' '));
+  const berlin = gameFromSan('e4 e5 Nf3 Nc6 Bb5 Nf6 O-O Nxe4 Re1 Nd6 Nxe5 Be7 Bf1 Nxe5 Rxe5 O-O d4 Bf6 Re1 Re8 c3 Rxe1 Qxe1 Ne8 Bf4 d6 Nd2 Bf5'.split(' '));
+  p.games = [
+    { id: 'demo1', date: now - day * .2, mode: 'ai', ai: 2, color: 'w', result: '0-1', outcome: 'loss', reason: 'checkmate', moves: trap, startFen: Chess.START, rDelta: -14, an: null },
+    { id: 'demo2', date: now - day * 1.3, mode: 'ai', ai: 2, color: 'w', result: '1-0', outcome: 'win', reason: 'checkmate', moves: opera, startFen: Chess.START, rDelta: 16, an: null },
+    { id: 'demo3', date: now - day * 2.5, mode: 'ai', ai: 3, color: 'w', result: '1/2-1/2', outcome: 'draw', reason: 'agreement', moves: berlin, startFen: Chess.START, rDelta: 6, an: null }
+  ];
+  p.ach = {}; for (const a of ACHIEVEMENTS) if (a.test(p)) p.ach[a.id] = now;
+  return p;
+}
+
+/* ---------- router ---------- */
+let cleanup = null;
+function parseHash() {
+  const raw = location.hash.replace(/^#/, '');
+  const [path, qs] = raw.split('?');
+  return { parts: (path || '').split('/').filter(Boolean), q: new URLSearchParams(qs || ''), raw };
+}
+function render() {
+  if (cleanup) { try { cleanup(); } catch (e) { } cleanup = null; }
+  document.onkeydown = null;
+  const { parts, q, raw } = parseHash(); const p = P(); const signed = p && p.session;
+  const [a, b] = parts;
+  if (!raw) { if (signed) return (location.hash = '#/home'); }
+  const open = { '': 1, join: 1, login: 1 };
+  if (!open[a || ''] && !signed) { location.hash = '#/join?next=' + (a || ''); return; }
+  if (signed && !p.onboarded && a !== 'welcome' && open[a || ''] !== 1) { location.hash = '#/welcome'; return; }
+  if (signed && (a === 'join' || a === 'login')) { location.hash = '#/home'; return; }
+  let v;
+  switch (a) {
+    case undefined: v = viewLanding(); break;
+    case 'join': v = viewAuth('join', q); break;
+    case 'login': v = viewAuth('login', q); break;
+    case 'welcome': v = viewOnboarding(); break;
+    case 'home': v = viewHome(); break;
+    case 'play': v = viewPlay(); break;
+    case 'analysis': v = viewAnalysis(b); break;
+    case 'practice': v = viewPractice(b); break;
+    case 'puzzles': v = b ? viewPuzzle(b) : viewPuzzles(); break;
+    case 'learn': v = b ? viewLesson(b) : viewLearn(); break;
+    case 'profile': v = viewProfile(); break;
+    case 'challenges': v = viewChallenges(); break;
+    case 'stories': v = b ? viewStory(b) : viewStories(); break;
+    case 'leaderboard': v = viewLeaderboard(); break;
+    default: v = { html: shell('', `<div class="wrap page"><div class="empty"><p><b>This page doesn’t exist.</b></p><a class="btn btn-primary" style="margin-top:12px" href="#/home">Go to your dashboard</a></div></div>`) };
+  }
+  if (!v || !v.html) return;
+  document.getElementById('app').innerHTML = v.html;
+  window.scrollTo(0, 0);
+  if (v.mount) v.mount();
+  cleanup = v.cleanup || null;
+  const titles = { home: 'Home', play: 'Play', learn: 'Learn', puzzles: 'Puzzles', profile: 'Profile', challenges: 'Challenges', stories: 'Stories', leaderboard: 'Leaderboard', analysis: 'Game review' };
+  document.title = (titles[a] ? titles[a] + ' — ' : '') + 'Sankofa Chess';
+}
+function boot() {
+  applyTheme();
+  Store.onRemote = () => render();
+  Store.init();
+  window.addEventListener('hashchange', render);
+  render();
+}
+boot();
+
+
+</script>
+<script>if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+</body>
+</html>
