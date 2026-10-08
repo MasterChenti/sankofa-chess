@@ -42,7 +42,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
-    url.pathname = "/app/home";
+    url.pathname = "/app/today";
     url.search = "";
     return NextResponse.redirect(url);
   }

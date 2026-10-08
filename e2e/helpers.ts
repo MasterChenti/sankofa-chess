@@ -22,7 +22,7 @@ export async function signUpAndOnboard(page: Page, user = uniqueUser()) {
   await page.getByRole("button", { name: /Improve tactics/ }).click();
   await page.getByTestId("onboarding-next").click();
   await page.getByTestId("onboarding-finish").click();
-  await expect(page).toHaveURL(/\/app\/home/);
+  await expect(page).toHaveURL(/\/app\/today/);
   return user;
 }
 

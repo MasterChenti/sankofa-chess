@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Chess } from "chess.js";
-import { Lightbulb, RotateCcw } from "lucide-react";
+import { ArrowRight, Lightbulb, RotateCcw } from "lucide-react";
 import { ChessBoard } from "@/components/chess/chess-board";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,20 @@ import { cn } from "@/lib/utils";
 
 type Status = "playing" | "wrong" | "solved" | "revealed";
 
-export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzzle; alreadySolved: boolean; nextHref: string }) {
+export function PuzzleClient({
+  puzzle,
+  alreadySolved,
+  nextHref,
+  continueHref,
+  continueLabel = "Continue",
+}: {
+  puzzle: Puzzle;
+  alreadySolved: boolean;
+  nextHref: string;
+  /** Inside the morning ritual: replaces "Next puzzle" with the next step. */
+  continueHref?: string;
+  continueLabel?: string;
+}) {
   const [moves, setMoves] = React.useState<string[]>([]);
   const [status, setStatus] = React.useState<Status>("playing");
   const [hint, setHint] = React.useState(false);
@@ -25,6 +38,7 @@ export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzz
   const [reported, setReported] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [why, setWhy] = React.useState(false);
   const solverColor = puzzle.fen.split(" ")[1] === "b" ? "b" : "w";
 
   React.useEffect(() => {
@@ -159,7 +173,20 @@ export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzz
         >
           {feedback.text}
         </p>
-        {(status === "solved" || status === "revealed") && <p className="text-sm text-muted-foreground">{puzzle.description}</p>}
+        {status === "revealed" && <p className="text-sm text-muted-foreground">{puzzle.description}</p>}
+        {status === "solved" &&
+          (why ? (
+            <p className="text-sm text-muted-foreground" data-testid="puzzle-why">
+              {puzzle.description}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-md)] border border-border px-4 py-3">
+              <p className="flex-1 text-sm font-semibold">You found it. Can you say why it works?</p>
+              <Button variant="ghost" size="sm" onClick={() => setWhy(true)}>
+                Show me
+              </Button>
+            </div>
+          ))}
         {hint && status === "playing" && puzzle.hint && (
           <p className="rounded-[var(--radius-md)] border border-border px-4 py-3 text-sm">
             <Lightbulb className="mr-1.5 inline size-4 text-accent-foreground" />
@@ -185,12 +212,22 @@ export function PuzzleClient({ puzzle, alreadySolved, nextHref }: { puzzle: Puzz
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href={nextHref}>Next puzzle</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/app/home">Dashboard</Link>
-            </Button>
+            {continueHref ? (
+              <Button asChild data-testid="step-continue">
+                <Link href={continueHref}>
+                  {continueLabel} <ArrowRight />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild>
+                  <Link href={nextHref}>Next puzzle</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/app/today">Today</Link>
+                </Button>
+              </>
+            )}
           </div>
         )}
       </aside>

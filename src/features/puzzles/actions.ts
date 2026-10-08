@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkPuzzleLine } from "@/features/puzzles/logic";
 import { applyProgress, type ProgressResult } from "@/features/progress/service";
+import { maybeCompleteDay, mergeProgress } from "@/features/today/complete";
 import { dayKey } from "@/lib/utils/dates";
 import type { Puzzle } from "@/types/database";
 import { track } from "@/lib/analytics";
@@ -46,10 +47,13 @@ export async function recordPuzzleAttempt(input: unknown): Promise<PuzzleAttempt
   const firstSolveEver = correct && !attempts.some((a) => a.correct);
   const firstSolveToday = correct && !attempts.some((a) => a.correct && a.day_key === today);
 
-  const { error } = await admin.from("puzzle_attempts").insert({ user_id: user.id, puzzle_id: puzzleId, correct, moves, day_key: today });
+  const { error } = await admin.from("puzzle_attempts").insert({ user_id: user.id, puzzle_id: puzzleId, correct, moves, day_key: today, outcome: correct ? "solved" : outcome });
   if (error) return { ok: false, error: "We couldn’t save that attempt." };
 
-  const progress = await applyProgress(admin, user.id, { kind: "puzzle", correct, firstAttempt, firstSolveEver, firstSolveToday });
+  const progress = mergeProgress(
+    await applyProgress(admin, user.id, { kind: "puzzle", correct, firstAttempt, firstSolveEver, firstSolveToday }),
+    outcome === "failed" ? null : await maybeCompleteDay(admin, user.id),
+  );
   if (correct) track("puzzle_completed", { firstAttempt });
   revalidatePath("/app", "layout");
   return { ok: true, correct, progress };

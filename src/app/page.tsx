@@ -8,17 +8,17 @@ import { getSession } from "@/features/auth/session";
 
 export const dynamic = "force-dynamic";
 
-const LEARN = [
-  { title: "Beginner", body: "How pieces move, check and checkmate, castling, first principles.", count: 6 },
-  { title: "Tactics", body: "Forks, pins, skewers, discovered attacks and mating patterns.", count: 6 },
-  { title: "Strategy", body: "The centre, development, king safety, pawn structure and space.", count: 6 },
-  { title: "Endgame", body: "King and pawn, opposition, and the rook endings you will actually meet.", count: 3 },
+const RITUAL = [
+  { title: "Move", body: "One chess position, chosen for your level. Find the idea, then say why it works.", time: "3 min" },
+  { title: "Remember", body: "One true story from African history. You face the decision before you learn what happened.", time: "4 min" },
+  { title: "Think", body: "One strategic question with no single right answer. See how strategists weigh each option.", time: "2 min" },
+  { title: "Reflect", body: "One sentence on what stayed with you. Then you’re done for the day.", time: "1 min" },
 ];
 
 const STORIES = [
-  { title: "Go back and get it", body: "The Akan word behind this platform, and why it fits a game built on memory." },
-  { title: "The wisdom knot", body: "Adinkra symbols carry whole ideas in a single shape. One of them describes a strong chess player." },
-  { title: "Senterej: chess at the Ethiopian court", body: "Long before online blitz, Ethiopia had its own version of the game." },
+  { title: "Adwa: the battle won before it was fought", body: "Ethiopia, 1896. What would you prioritise before the decisive battle?" },
+  { title: "The Golden Stool", body: "Asante, 1900. A governor asks to sit on a nation’s most sacred object. What would you do?" },
+  { title: "Saving the manuscripts of Timbuktu", body: "Mali, 2012. If you were responsible for these libraries, what would you do?" },
 ];
 
 export default async function LandingPage() {
@@ -28,7 +28,7 @@ export default async function LandingPage() {
   } catch {
     signedIn = false;
   }
-  const join = signedIn ? "/app/home" : "/signup";
+  const join = signedIn ? "/app/today" : "/signup";
 
   return (
     <div className="min-h-dvh">
@@ -40,7 +40,7 @@ export default async function LandingPage() {
           <div className="ml-auto flex items-center gap-2">
             {signedIn ? (
               <Button asChild size="sm">
-                <Link href="/app/home">Open dashboard</Link>
+                <Link href="/app/today">Open dashboard</Link>
               </Button>
             ) : (
               <>
@@ -64,14 +64,15 @@ export default async function LandingPage() {
               Learn from the past. Master your next move.
             </h1>
             <p className="max-w-[46ch] text-lg text-muted-foreground">
-              Sankofa Chess is a new generation chess platform built around strategy, learning and African heritage.
+              Ten minutes a day to sharpen your mind: a chess position, a true story from African history, a strategic question, and real opponents
+              when you want a game. Then you’re done.
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href={signedIn ? "/app/play" : "/signup"}>Play Chess</Link>
+                <Link href={signedIn ? "/app/today" : "/signup"}>Start today</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
-                <Link href={signedIn ? "/app/learn" : "/signup"}>Start Learning</Link>
+                <Link href={signedIn ? "/app/play?tab=people" : "/signup"}>Play a real person</Link>
               </Button>
             </div>
           </div>
@@ -92,27 +93,30 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Learn */}
+        {/* The daily session */}
         <section className="border-t border-border">
           <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-[5fr_7fr] md:gap-16 lg:py-24">
             <div className="flex flex-col items-start gap-4">
-              <h2 className="text-3xl font-semibold sm:text-4xl">Learn with structure</h2>
-              <p className="text-muted-foreground">Short, interactive lessons. Read the idea, then play it on the board.</p>
+              <h2 className="text-3xl font-semibold sm:text-4xl">A morning session, not a feed</h2>
+              <p className="text-muted-foreground">
+                Made for the bus, the tro-tro or the first coffee. It has an end: “You’ve sharpened your mind for today.” Your streak forgives one missed
+                day a week, because life happens.
+              </p>
               <Button asChild variant="secondary">
-                <Link href={signedIn ? "/app/learn" : "/signup"}>Start Learning</Link>
+                <Link href={join}>Try today’s session</Link>
               </Button>
             </div>
-            <ul className="divide-y divide-border border-y border-border">
-              {LEARN.map((l) => (
+            <ol className="divide-y divide-border border-y border-border">
+              {RITUAL.map((l) => (
                 <li key={l.title} className="flex items-baseline justify-between gap-6 py-5">
                   <div>
                     <h3 className="text-xl font-semibold">{l.title}</h3>
                     <p className="text-sm text-muted-foreground">{l.body}</p>
                   </div>
-                  <span className="num shrink-0 text-sm text-faint">{l.count} lessons</span>
+                  <span className="num shrink-0 text-sm text-faint">{l.time}</span>
                 </li>
               ))}
-            </ul>
+            </ol>
           </div>
         </section>
 
@@ -120,15 +124,18 @@ export default async function LandingPage() {
         <section className="border-t border-border bg-background-2">
           <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:gap-16 lg:py-24">
             <div className="flex flex-col items-start gap-4">
-              <h2 className="text-3xl font-semibold sm:text-4xl">Today’s challenge</h2>
-              <p className="text-xl">White to move. Can you find the winning move?</p>
-              <p className="text-muted-foreground">A new puzzle every day, from one-move mates to multi-move combinations.</p>
+              <h2 className="text-3xl font-semibold sm:text-4xl">Play people, near and far</h2>
+              <p className="text-xl">Real opponents, matched by rating. No bots pretending to be people.</p>
+              <p className="text-muted-foreground">
+                Blitz and rapid when you have a few minutes. Daily chess, one move a day, when your connection is weak. Challenge a friend with a WhatsApp
+                link. After every game, the coach asks what you think went wrong before it tells you.
+              </p>
               <Button asChild>
-                <Link href={signedIn ? "/app/puzzles/daily" : "/signup"}>Solve Puzzle</Link>
+                <Link href={signedIn ? "/app/play?tab=people" : "/signup"}>Find a game</Link>
               </Button>
             </div>
             <div className="mx-auto w-full max-w-[380px] overflow-hidden rounded-[10px] bg-[var(--board-frame)] p-[3px]">
-              <MiniBoard fen="r3k3/8/8/1N6/8/8/7P/4K3 w - - 0 1" label="Puzzle preview: white to move" />
+              <MiniBoard fen="r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4" label="A game in progress: white threatens mate on f7" />
             </div>
           </div>
         </section>
@@ -137,7 +144,7 @@ export default async function LandingPage() {
         <section className="border-t border-border">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
             <h2 className="text-3xl font-semibold sm:text-4xl">See yourself improve</h2>
-            <p className="mt-2 text-muted-foreground">Every game, puzzle and lesson feeds your progress.</p>
+            <p className="mt-2 text-muted-foreground">Your rating, and also how you think: the stories you’ve remembered and the days you’ve sharpened.</p>
             <dl className="mt-8 grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-border bg-border [gap:1px] sm:grid-cols-5">
               {[
                 ["1,247", "Chess rating"],
@@ -165,14 +172,15 @@ export default async function LandingPage() {
               <p className="text-sm text-muted-foreground">Akan proverb behind the word sankofa</p>
             </div>
             <div className="flex flex-col gap-4">
-              <h2 className="text-3xl font-semibold">Sankofa Stories</h2>
+              <h2 className="text-3xl font-semibold">Stories you live, not read</h2>
               <p className="text-muted-foreground">
-                Short reads that connect African philosophy, history and strategic traditions to the way you think at the board.
+                From Great Zimbabwe to Ibn Khaldun, Njinga to Wangari Maathai. Every story is researched, separates fact from tradition, and lists its
+                sources.
               </p>
               <ul className="divide-y divide-border border-y border-border">
                 {STORIES.map((s) => (
                   <li key={s.title}>
-                    <Link href={signedIn ? "/app/stories" : "/signup"} className="group flex items-start justify-between gap-4 py-4">
+                    <Link href={signedIn ? "/app/discover" : "/signup"} className="group flex items-start justify-between gap-4 py-4">
                       <span>
                         <span className="block font-display text-xl font-semibold group-hover:text-accent-foreground">{s.title}</span>
                         <span className="text-sm text-muted-foreground">{s.body}</span>

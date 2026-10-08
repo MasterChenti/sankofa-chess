@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Sankofa Chess",
     short_name: "Sankofa",
     description: "Learn from the past. Master your next move.",
-    start_url: "/app/home",
+    start_url: "/app/today",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

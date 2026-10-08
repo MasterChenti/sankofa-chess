@@ -41,7 +41,7 @@ export const profileSchema = z.object({
 export type ProfileInput = z.infer<typeof profileSchema>;
 
 /** Only same-site relative paths are allowed as post-login redirects. */
-export function safeNext(next: string | null | undefined, fallback = "/app/home") {
+export function safeNext(next: string | null | undefined, fallback = "/app/today") {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
   return next;
 }

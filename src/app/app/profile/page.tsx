@@ -7,17 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { requirePlayer } from "@/features/auth/session";
-import { displayStreak, levelForXp, puzzleAccuracy, winRate } from "@/features/progress/rules";
+import { PILLARS, displayStreak, levelForXp, puzzleAccuracy, winRate, type Pillar } from "@/features/progress/rules";
+import { STYLE_LABEL, dominantStyle } from "@/features/think/styles";
 import { countryFlag, countryName } from "@/config/countries";
 import { dayKey } from "@/lib/utils/dates";
-import type { Achievement, GameRow } from "@/types/database";
+import type { Achievement, GameRow, ThinkingStyle } from "@/types/database";
 import { cn, relativeDate } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Profile" };
 
 export default async function ProfilePage() {
   const { supabase, profile } = await requirePlayer();
-  const [{ data: achData }, { data: earnedData }, { data: gameData }, { count: lessonTotal }] = await Promise.all([
+  const [{ data: achData }, { data: earnedData }, { data: gameData }, { count: lessonTotal }, { data: xpData }, { data: styleData }, { data: notes }] = await Promise.all([
     supabase.from("achievements").select("*").order("sort_order"),
     supabase.from("user_achievements").select("achievement_id, earned_at").eq("user_id", profile.id),
     supabase
@@ -27,7 +28,21 @@ export default async function ProfilePage() {
       .order("created_at", { ascending: false })
       .limit(20),
     supabase.from("lessons").select("id", { count: "exact", head: true }),
+    supabase.from("xp_events").select("pillar, amount").eq("user_id", profile.id).limit(5000),
+    supabase.from("thought_answers").select("style").eq("user_id", profile.id),
+    supabase
+      .from("daily_sessions")
+      .select("day_key, reflection_choice, reflection")
+      .eq("user_id", profile.id)
+      .not("reflected_at", "is", null)
+      .order("day_key", { ascending: false })
+      .limit(5),
   ]);
+  const pillarXp = new Map<Pillar, number>();
+  for (const e of (xpData ?? []) as { pillar: Pillar | null; amount: number }[]) if (e.pillar) pillarXp.set(e.pillar, (pillarXp.get(e.pillar) ?? 0) + e.amount);
+  const pillarMax = Math.max(1, ...pillarXp.values());
+  const style = dominantStyle(((styleData ?? []) as { style: ThinkingStyle | null }[]).map((r) => r.style));
+  const notebook = (notes ?? []) as { day_key: string; reflection_choice: string | null; reflection: string | null }[];
   const achievements = (achData ?? []) as Achievement[];
   const earned = new Map(((earnedData ?? []) as { achievement_id: string; earned_at: string }[]).map((e) => [e.achievement_id, e.earned_at]));
   const games = (gameData ?? []) as Pick<GameRow, "id" | "opponent_name" | "outcome" | "termination" | "result" | "created_at" | "rating_change" | "rated" | "accuracy" | "reviewed_at">[];
@@ -47,10 +62,17 @@ export default async function ProfilePage() {
   const learning: [string | number, string][] = [
     [`${profile.lessons_completed}/${lessonTotal ?? 0}`, "Lessons completed"],
     [acc == null ? "—" : `${acc}%`, "Puzzle accuracy"],
-    [`${displayStreak(profile.last_active_date, today, profile.streak)} d`, "Current streak"],
+    [`${displayStreak(profile.last_active_date, today, profile.streak, profile.rest_week)} d`, "Current streak"],
     [profile.puzzles_solved, "Puzzles solved"],
-    [`${profile.best_streak} d`, "Best streak"],
     [profile.xp, "Total XP"],
+  ];
+  const mind: [string | number, string][] = [
+    [profile.days_sharpened, "Days sharpened"],
+    [profile.stories_read, "Stories remembered"],
+    [profile.thoughts_answered, "Questions answered"],
+    [profile.reflections, "Reflections"],
+    [profile.online_games, "Games vs people"],
+    [`${profile.best_streak} d`, "Best streak"],
   ];
 
   return (
@@ -90,10 +112,11 @@ export default async function ProfilePage() {
         </p>
       </Card>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {[
           ["Chess", chess],
-          ["Learning", learning],
+          ["Training", learning],
+          ["Mind", mind],
         ].map(([title, rows]) => (
           <Card key={title as string}>
             <CardHeader>
@@ -113,13 +136,79 @@ export default async function ProfilePage() {
         ))}
       </div>
 
+      <div className="mt-5 grid gap-5 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Where your XP comes from</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3" data-testid="pillars">
+            {PILLARS.map((p) => (
+              <div key={p.key} className="flex flex-col gap-1">
+                <div className="flex justify-between text-sm">
+                  <span className="font-semibold">
+                    {p.label} <span className="font-normal text-muted-foreground">· {p.verb}</span>
+                  </span>
+                  <span className="num text-muted-foreground">{pillarXp.get(p.key) ?? 0} XP</span>
+                </div>
+                <Progress value={(100 * (pillarXp.get(p.key) ?? 0)) / pillarMax} />
+              </div>
+            ))}
+            <p className="text-xs text-faint">A strong player is balanced: good at the board, and good at thinking about it.</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>How you think</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {style ? (
+              <>
+                <p className="font-display text-2xl font-semibold">{STYLE_LABEL[style.style].title}</p>
+                <p className="text-sm">{STYLE_LABEL[style.style].line}</p>
+                <p className="text-xs text-faint">
+                  Based on {style.count} of your {style.total} answers to strategic questions. Just for fun, not a personality test: it changes as you do.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Answer three strategic questions and you’ll see which way your instincts lean.</p>
+            )}
+            <Button asChild variant="secondary" size="sm" className="mt-2 w-fit">
+              <Link href="/app/think">Strategic questions</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {notebook.length > 0 && (
+        <section className="mt-10" aria-labelledby="notebook-h">
+          <h2 id="notebook-h" className="mb-1 text-xl font-semibold">
+            Your notebook
+          </h2>
+          <p className="mb-3 text-sm text-muted-foreground">Your recent reflections. Only you can see these.</p>
+          <ul className="flex flex-col gap-2">
+            {notebook.map((n) => (
+              <li key={n.day_key} className="rounded-[var(--radius-md)] border border-border bg-card px-4 py-3">
+                <p className="num text-xs text-muted-foreground">{n.day_key}</p>
+                {n.reflection_choice && <p className="text-sm font-semibold">{n.reflection_choice}</p>}
+                {n.reflection && <p className="font-display text-lg italic">“{n.reflection}”</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="mt-10" aria-labelledby="ach-h">
         <div className="mb-3 flex items-end justify-between">
           <h2 id="ach-h" className="text-xl font-semibold">
             Achievements
           </h2>
-          <span className="num text-sm text-muted-foreground">
-            {earned.size} of {achievements.length}
+          <span className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="num">
+              {earned.size} of {achievements.length}
+            </span>
+            <Link href="/app/challenges" className="font-semibold text-accent-foreground hover:underline">
+              Challenges
+            </Link>
           </span>
         </div>
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -5,6 +5,7 @@ test("play the computer, resign, and get a coached review", async ({ page }) => 
   test.setTimeout(180_000);
   await signUpAndOnboard(page);
   await page.goto("/app/play");
+  await page.getByTestId("tab-computer").click();
   await page.getByRole("button", { name: /Abena/ }).click();
   await page.getByRole("button", { name: "White", exact: true }).click();
   await page.getByRole("button", { name: "No clock" }).click();
@@ -36,7 +37,10 @@ test("play the computer, resign, and get a coached review", async ({ page }) => 
   await result.getByRole("button", { name: "Review with the coach" }).click();
 
   await expect(page).toHaveURL(/\/app\/play\/[0-9a-f-]{36}/);
-  await expect(page.getByTestId("biggest-lesson")).toBeVisible({ timeout: 90_000 });
+  // "Think first": when the coach asks what went wrong, answer before it reveals.
+  await expect(page.getByTestId("think-first").or(page.getByTestId("biggest-lesson")).first()).toBeVisible({ timeout: 90_000 });
+  if (await page.getByTestId("think-first").isVisible()) await page.getByRole("button", { name: "I’m not sure: show me" }).click();
+  await expect(page.getByTestId("biggest-lesson")).toBeVisible();
   await page.getByRole("button", { name: "Why was my worst move bad?" }).click();
   await expect(page.getByTestId("coach-chat").locator("p")).toHaveCount(3, { timeout: 30_000 });
   await page.screenshot({ path: "test-results/screens/06-review.png", fullPage: true });
@@ -49,7 +53,7 @@ test("play the computer, resign, and get a coached review", async ({ page }) => 
 
 test("pass and play supports two players on one device", async ({ page }) => {
   await signUpAndOnboard(page);
-  await page.goto("/app/play");
+  await page.goto("/app/play?tab=computer");
   await page.getByRole("button", { name: /Pass & play/ }).click();
   await page.getByRole("button", { name: "No clock" }).click();
   await page.getByTestId("start-game").click();

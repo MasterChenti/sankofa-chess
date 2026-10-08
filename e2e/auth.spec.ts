@@ -19,13 +19,13 @@ test("sign-up validation shows helpful errors", async ({ page }) => {
 });
 
 test("protected pages redirect to login", async ({ page }) => {
-  await page.goto("/app/home");
+  await page.goto("/app/today");
   await expect(page).toHaveURL(/\/login\?next=/);
 });
 
 test("sign up, onboard, log out and log back in", async ({ page }) => {
   const user = await signUpAndOnboard(page);
-  await expect(page.getByTestId("home-greeting")).toHaveText(`Welcome back, ${user.name}.`);
+  await expect(page.getByTestId("home-greeting")).toContainText(`, ${user.name}.`);
   await page.screenshot({ path: "test-results/screens/02-home.png", fullPage: true });
 
   await page.getByRole("button", { name: "Account menu" }).click();
@@ -40,7 +40,7 @@ test("sign up, onboard, log out and log back in", async ({ page }) => {
 
   await page.getByLabel("Password").fill(user.password);
   await page.getByTestId("login-submit").click();
-  await expect(page).toHaveURL(/\/app\/home/);
+  await expect(page).toHaveURL(/\/app\/today/);
   await expect(page.getByTestId("home-greeting")).toContainText(user.name);
 });
 
@@ -49,8 +49,11 @@ test("the seeded demo account can log in", async ({ page }) => {
   await page.getByLabel("Email").fill("demo@sankofachess.app");
   await page.getByLabel("Password").fill("sankofa-demo-2026");
   await page.getByTestId("login-submit").click();
-  await expect(page).toHaveURL(/\/app\/home/);
+  await expect(page).toHaveURL(/\/app\/today/);
   await page.goto("/app/leaderboard");
+  await expect(page).toHaveURL(/\/app\/community/);
   await expect(page.getByRole("cell", { name: /kwame_opens/ })).toBeVisible();
+  await page.getByRole("link", { name: "Countries" }).click();
+  await expect(page.getByTestId("countries-table")).toBeVisible();
   await page.screenshot({ path: "test-results/screens/03-leaderboard.png", fullPage: true });
 });

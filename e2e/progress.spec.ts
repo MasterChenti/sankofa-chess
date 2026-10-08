@@ -23,8 +23,8 @@ test("puzzles: wrong answer, retry, correct answer and progress", async ({ page 
   await expect(page.getByTestId("puzzle-feedback")).toHaveText("Excellent. You saw the tactic.");
   await expect(page.getByTestId("puzzle-feedback")).toHaveAttribute("data-saving", "false");
 
-  await page.goto("/app/home");
-  await expect(page.getByTestId("daily-progress")).toHaveText("2 / 3");
+  await page.goto("/app/challenges");
+  await expect(page.getByText("2/3").first()).toBeVisible();
 
   await page.goto("/app/puzzles");
   await expect(page.getByText("2/11")).toBeVisible();
@@ -54,6 +54,7 @@ test("learning: complete a lesson and keep the progress", async ({ page }) => {
   await page.screenshot({ path: "test-results/screens/10-challenges.png", fullPage: true });
 
   await page.goto("/app/stories/go-back-and-get-it");
+  await expect(page).toHaveURL(/\/app\/discover\/go-back-and-get-it/);
   await expect(page.getByRole("heading", { name: "Go back and get it" })).toBeVisible();
   await page.screenshot({ path: "test-results/screens/11-story.png", fullPage: true });
 });

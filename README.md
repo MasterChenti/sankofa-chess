@@ -2,7 +2,7 @@
 
 **Learn from the past. Master your next move.**
 
-A strategic learning platform rooted in African heritage, with chess at its core. Play the computer, solve puzzles, learn in short interactive lessons, and get a coached review after every game.
+The mental arena of Africa: ten minutes a day to sharpen your mind. A chess position, a true story from African history, a strategic question and a one-line reflection, then you’re done. Play real people (or the computer) whenever you want a game, and get a coached review after every one.
 
 Stack: **Next.js 15 (App Router) · TypeScript · React 19 · Tailwind CSS v4 · shadcn/ui (Radix) · Lucide · Supabase (Postgres, Auth, RLS) · chess.js · Stockfish 19 (WASM) · react-chessboard · React Hook Form + Zod · Vitest · Playwright · Vercel**
 
@@ -16,17 +16,26 @@ Stack: **Next.js 15 (App Router) · TypeScript · React 19 · Tailwind CSS v4 ·
 | Email/password sign-up, login, logout, protected routes | Real (Supabase Auth) |
 | Google sign-in | Wired; switch on with `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true` once configured in Supabase |
 | Onboarding (level → goal → plan) | Real |
-| Dashboard: daily mission, quick actions, progress, next lesson, Sankofa of the Day | Real |
+| **Today**: a finite daily session, Move → Remember → Think → (Play) → Reflect → “You’ve sharpened your mind for today” | Real. Plan is deterministic per player per day; step status is derived from real records |
+| Morning Mode (`/app/today/morning`): one step per screen, single column, light on data | Real |
+| **Stories as experiences**: situation → “what would you do?” → what happened → Sankofa lesson → well established vs debated → sources | 17 researched stories across West, East, North, Central, Southern Africa and the diaspora |
+| Discover (regions, themes, read marks, curated “today’s story” that rotates regions) | Real. No infinite feed |
+| Think: strategic questions (no single right answer), a playful “how you think” mirror | 14 questions. The style mirror is labelled “just for fun”, not psychology |
+| **Play real people**: matchmaking by rating (blitz 3+2, rapid 10+0, daily 24 h/move), invite links (WhatsApp share), realtime moves with polling fallback, server clocks, draw/resign/abort, rated results | Real (Supabase Realtime + server actions). Online count is real presence only |
+| Coach “think first”: asks what went wrong before revealing | Real |
+| Community: Global / Country / Countries (top-5 average) / Friends | Real queries; Friends lists not built yet (invite links work) |
+| Healthy streak: forgives one missed day per ISO week | Real |
+| Content locales (`stories.locale`, `thoughts.locale`) for Twi, Ga, Ewe, Hausa, Yoruba, Swahili, French, Portuguese, Arabic | Schema ready; only English content exists today |
+| Organizations (schools, clubs) | Tables only, no UI yet |
 | Play vs computer (3 personas), pass & play, clocks, draw offers, resignation | Real — Stockfish 19 lite in a Web Worker, fallback engine for old devices |
 | All chess rules (check, mate, castling, promotion, en passant, draws) | chess.js |
 | Post-game review: accuracy, mistakes, biggest lesson (what → why → next), practice position, eval graph | Real — engine layer + deterministic coaching layer |
 | AI coach chat | `ChessCoachService`: guided (deterministic) by default; live LLM when `AI_API_KEY` is set |
-| Puzzles (11), lessons (21), stories (6), challenges (4), achievements (8) | Seeded content in Postgres |
+| Puzzles (11), lessons (21), stories (17), strategic questions (14), challenges (5), achievements (12) | Seeded content in Postgres |
 | XP, Sankofa levels, streaks, rating, challenges, achievements | Real, computed server-side |
-| Leaderboard (Global / Country / Friends) | Real query; other players are **seeded demo profiles**; Friends waits for online play |
-| Online multiplayer, tournaments, schools, payments | Not built (P2) |
+| Tournaments, clubs UI, friend lists, chat, payments | Not built |
 
-**Mocked / demo on purpose:** the 20 leaderboard players and the demo login account are seed data. Remove them before a public launch (see *Going live*). Story facts are sourced but need an editorial check before launch.
+**Mocked / demo on purpose:** the 20 leaderboard players (marked “demo” in Community) and the demo login account are seed data. They never appear in matchmaking. Remove them before a public launch (see *Going live*). Story facts are sourced but need an editorial check before launch.
 
 ---
 
@@ -100,6 +109,10 @@ npm run db:seed:generate  # regenerate seed.sql / setup.sql after editing supaba
    → Deploy.
 6. **Google sign-in (optional):** create an OAuth client in Google Cloud, add it in Supabase → Authentication → Providers → Google, then set `NEXT_PUBLIC_ENABLE_GOOGLE_AUTH=true` in Vercel and redeploy.
 
+### Upgrading an existing database
+
+When a release adds a migration, the repo ships an idempotent `supabase/upgrade-<name>.sql` (migration + content). Run it in the Supabase SQL Editor **before** deploying the new code. It is safe to run more than once. For phase 2 that file is `supabase/upgrade-phase2_daily_and_online.sql`. Also make sure Realtime is enabled for the project (it is by default).
+
 ### Going live checklist
 - Delete demo users: `delete from auth.users where email like '%@demo.sankofachess.app' or email = 'demo@sankofachess.app';`
 - Editorial review of `STORIES` sources.
@@ -111,7 +124,7 @@ npm run db:seed:generate  # regenerate seed.sql / setup.sql after editing supaba
 ## Testing
 
 - **Unit (Vitest):** progression rules, dates/time zones, chess rules (castling, promotion, en passant, mate, stalemate), server-side game verification, puzzle and lesson checking, every seeded FEN/solution, coaching layer.
-- **End-to-end (Playwright, mobile viewport):** landing, sign-up validation, sign-up → onboarding → dashboard, logout/login, demo login + leaderboard, full game vs computer → resign → saved → coached review → chat, pass & play checkmate, puzzle wrong → retry → correct, multi-move puzzle, daily progress, lesson completion persisting across reloads, profile and challenges.
+- **End-to-end (Playwright, mobile viewport):** the full Today session to “sharpened”, two real players by invite link playing to checkmate, matchmaking + abort, discover/think, landing, sign-up validation, sign-up → onboarding → dashboard, logout/login, demo login + leaderboard, full game vs computer → resign → saved → coached review → chat, pass & play checkmate, puzzle wrong → retry → correct, multi-move puzzle, daily progress, lesson completion persisting across reloads, profile and challenges.
 - **CI:** `.github/workflows/ci.yml` runs lint, typecheck, unit tests, seed freshness, a local Supabase, the production build and Playwright on every push.
 
 ---

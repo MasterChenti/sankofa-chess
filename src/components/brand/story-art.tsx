@@ -1,11 +1,30 @@
+import { Armchair, Bone, BookOpen, BrickWall, Coins, Handshake, ScrollText, Shield, Swords, TreePine, type LucideIcon } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 import { PieceSvg } from "@/components/brand/pieces";
 import { MiniBoard } from "@/components/chess/mini-board";
 import { START_FEN } from "@/lib/chess/fen";
 
+/** Simple line symbols for stories that don't have a bespoke drawing. */
+const LINE: Record<string, LucideIcon> = {
+  stool: Armchair,
+  shield: Shield,
+  coin: Coins,
+  book: BookOpen,
+  wall: BrickWall,
+  horns: Swords,
+  seat: Handshake,
+  scroll: ScrollText,
+  bone: Bone,
+  tree: TreePine,
+};
+
 /** Editorial art for Sankofa Stories — one restrained symbol per story. */
 export function StoryArt({ symbol, className }: { symbol: string | null; className?: string }) {
+  const Line = symbol ? LINE[symbol] : undefined;
+  if (Line) return <Line className={className} strokeWidth={1.25} aria-hidden />;
   switch (symbol) {
+    case "knight":
+      return <PieceSvg code="wN" className={className} />;
     case "sankofa":
       return <LogoMark className={className} egg="var(--ivory)" />;
     case "nyansapo":

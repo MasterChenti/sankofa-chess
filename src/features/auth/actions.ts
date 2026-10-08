@@ -142,7 +142,7 @@ export async function completeOnboarding(input: unknown): Promise<ActionState> {
   const { error } = await admin.from("profiles").update(patch).eq("id", user.id);
   if (error) return { message: "We couldn’t save your choices. Please try again." };
   track("onboarding_completed", { goal: parsed.data.goal });
-  redirect("/app/home");
+  redirect("/app/today");
 }
 
 export async function updateProfile(input: unknown): Promise<ActionState> {

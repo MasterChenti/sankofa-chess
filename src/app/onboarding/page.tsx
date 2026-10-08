@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function OnboardingPage() {
   const { user, profile } = await getSession();
   if (!user) redirect("/login?next=/onboarding");
-  if (profile?.onboarded_at) redirect("/app/home");
+  if (profile?.onboarded_at) redirect("/app/today");
 
   return (
     <div className="min-h-dvh">
