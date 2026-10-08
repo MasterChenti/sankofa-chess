@@ -25,8 +25,11 @@ export type PlyAnalysis = {
   bestSan: string | null;
 };
 
+export type CoachingCause = "clean" | "early-resign" | "development" | "king-safety" | "early-queen" | "hanging-piece" | "initiative";
+
 /** Human layer — what the player reads. */
 export type Coaching = {
+  cause?: CoachingCause;
   headline: string;
   what: string;
   why: string;

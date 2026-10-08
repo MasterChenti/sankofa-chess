@@ -19,6 +19,8 @@ import type { GameAnalysis } from "@/lib/chess/analysis-types";
 import { TERMINATION_LABEL, uciToMove, type Termination } from "@/lib/chess/rules";
 import { START_FEN } from "@/lib/chess/fen";
 import { saveAnalysis } from "@/features/chess/actions";
+import { CAUSE_OPTIONS, coachingCause } from "@/lib/chess/coaching";
+import type { CoachingCause } from "@/lib/chess/analysis-types";
 import { celebrate } from "@/features/progress/celebrate";
 import type { GameRow } from "@/types/database";
 import { cn } from "@/lib/utils";
@@ -94,6 +96,10 @@ function ReviewBody({ game, analysis, lessons }: { game: GameRow; analysis: Game
   };
   const cur = ply >= 0 ? analysis.plies[ply] : null;
   const lesson = c.lessonSlug ? lessons[c.lessonSlug] : null;
+  const cause = coachingCause(c);
+  const askFirst = cause !== "clean" && cause !== "early-resign";
+  const [guess, setGuess] = React.useState<string | null>(null);
+  const revealed = !askFirst || guess !== null;
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -126,40 +132,56 @@ function ReviewBody({ game, analysis, lessons }: { game: GameRow; analysis: Game
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
         <div className="flex flex-col gap-6">
+          {askFirst && (
+            <ThinkFirst
+              gameId={game.id}
+              moveLabel={c.keyMoveLabel && c.keyMoveSan ? `${c.keyMoveLabel} ${c.keyMoveSan}` : null}
+              correct={cause}
+              guess={guess}
+              onGuess={(g) => {
+                setGuess(g);
+                if (c.keyPly != null) setPly(c.keyPly);
+              }}
+            />
+          )}
+          {revealed && (
+            <>
           <Card>
-            <CardHeader>
-              <p className="text-sm text-muted-foreground">Your biggest lesson</p>
-              <CardTitle className="text-2xl" data-testid="biggest-lesson">
-                {c.headline}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ol className="flex flex-col gap-4">
-                {[
-                  ["What happened", c.what || "Nothing went badly wrong."],
-                  ["Why it happened", c.why],
-                  ["What to do next time", c.next],
-                ].map(([t, body], i) => (
-                  <li key={t} className="grid grid-cols-[1.75rem_1fr] gap-3">
-                    <span className="num grid size-7 place-items-center rounded-full bg-accent text-xs font-bold text-accent-foreground">{i + 1}</span>
-                    <div>
-                      <p className="text-sm font-semibold">{t}</p>
-                      <p className="text-[0.95rem] text-muted-foreground">{body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              {lesson && c.lessonSlug && (
-                <Button asChild variant="secondary" className="mt-5">
-                  <Link href={`/app/learn/${c.lessonSlug}`}>
-                    <BookOpen /> Lesson: {lesson.title}
-                  </Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+              <CardHeader>
+                <p className="text-sm text-muted-foreground">Your biggest lesson</p>
+                <CardTitle className="text-2xl" data-testid="biggest-lesson">
+                  {c.headline}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ol className="flex flex-col gap-4">
+                  {[
+                    ["What happened", c.what || "Nothing went badly wrong."],
+                    ["Why it happened", c.why],
+                    ["What to do next time", c.next],
+                  ].map(([t, body], i) => (
+                    <li key={t} className="grid grid-cols-[1.75rem_1fr] gap-3">
+                      <span className="num grid size-7 place-items-center rounded-full bg-accent text-xs font-bold text-accent-foreground">{i + 1}</span>
+                      <div>
+                        <p className="text-sm font-semibold">{t}</p>
+                        <p className="text-[0.95rem] text-muted-foreground">{body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                {lesson && c.lessonSlug && (
+                  <Button asChild variant="secondary" className="mt-5">
+                    <Link href={`/app/learn/${c.lessonSlug}`}>
+                      <BookOpen /> Lesson: {lesson.title}
+                    </Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+            </>
+          )}
 
-          {c.keyFen && <PracticePosition fen={c.keyFen} bestUci={c.keyBestUci} bestSan={c.keyBestSan} color={game.user_color} label={c.keyMoveLabel} />}
+          {revealed && c.keyFen && <PracticePosition fen={c.keyFen} bestUci={c.keyBestUci} bestSan={c.keyBestSan} color={game.user_color} label={c.keyMoveLabel} />}
 
           <CoachChat gameId={game.id} />
         </div>
@@ -416,6 +438,71 @@ function CoachChat({ gameId }: { gameId: string }) {
             <Send />
           </Button>
         </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ThinkFirst({
+  gameId,
+  moveLabel,
+  correct,
+  guess,
+  onGuess,
+}: {
+  gameId: string;
+  moveLabel: string | null;
+  correct: CoachingCause;
+  guess: string | null;
+  onGuess: (g: string) => void;
+}) {
+  // Correct answer plus three others, in a stable order for this game.
+  const options = React.useMemo(() => {
+    const others = CAUSE_OPTIONS.filter((o) => o.cause !== correct);
+    const seed = [...gameId].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+    const picked = [...others].sort((a, b) => ((seed ^ a.cause.length * 97) % 7) - ((seed ^ b.cause.length * 97) % 7)).slice(0, 3);
+    const all = [...picked, CAUSE_OPTIONS.find((o) => o.cause === correct)!];
+    return all.sort((a, b) => ((seed + a.text.length) % 5) - ((seed + b.text.length) % 5));
+  }, [gameId, correct]);
+
+  return (
+    <Card className="border-gold/40" data-testid="think-first">
+      <CardHeader>
+        <p className="text-sm text-muted-foreground">Think first</p>
+        <CardTitle className="text-2xl">What do you think went wrong{moveLabel ? ` around ${moveLabel}` : ""}?</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        {options.map((o) => {
+          const chosen = guess === o.cause;
+          const right = guess && o.cause === correct;
+          return (
+            <button
+              key={o.cause}
+              type="button"
+              disabled={guess !== null}
+              onClick={() => onGuess(o.cause)}
+              className={cn(
+                "rounded-[var(--radius-md)] border px-4 py-3 text-left text-[0.95rem] transition-colors",
+                !guess && "border-border hover:border-gold",
+                right && "border-success bg-success/10",
+                chosen && !right && "border-destructive/60 bg-destructive/10",
+                guess && !chosen && !right && "border-border opacity-60",
+              )}
+            >
+              {o.text}
+            </button>
+          );
+        })}
+        {!guess && (
+          <button type="button" onClick={() => onGuess("unsure")} className="mt-1 w-fit text-sm font-semibold text-muted-foreground hover:text-foreground">
+            I’m not sure: show me
+          </button>
+        )}
+        {guess && (
+          <p className="mt-1 text-sm font-semibold" aria-live="polite">
+            {guess === correct ? "You spotted it. That’s exactly what decided the game." : guess === "unsure" ? "Here’s what decided the game." : "Not quite. Here’s what actually decided the game."}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

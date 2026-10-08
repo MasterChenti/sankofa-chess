@@ -33,13 +33,22 @@ describe("rating", () => {
 
 describe("streaks", () => {
   it("continues, holds and resets", () => {
-    expect(nextStreak(null, "2026-09-30", 0)).toBe(1);
-    expect(nextStreak("2026-09-29", "2026-09-30", 4)).toBe(5);
-    expect(nextStreak("2026-09-30", "2026-09-30", 5)).toBe(5);
-    expect(nextStreak("2026-09-27", "2026-09-30", 5)).toBe(1);
+    expect(nextStreak(null, "2026-09-30", 0).streak).toBe(1);
+    expect(nextStreak("2026-09-29", "2026-09-30", 4).streak).toBe(5);
+    expect(nextStreak("2026-09-30", "2026-09-30", 5).streak).toBe(5);
+    expect(nextStreak("2026-09-26", "2026-09-30", 5).streak).toBe(1);
+  });
+  it("forgives one missed day per week", () => {
+    // Missed Wed 2026-10-07; active again Thu 2026-10-08 (ISO week 41).
+    const r = nextStreak("2026-10-06", "2026-10-08", 6, null);
+    expect(r).toEqual({ streak: 7, restWeek: "2026-W41" });
+    // A second miss in the same week breaks it.
+    expect(nextStreak("2026-10-08", "2026-10-10", 7, "2026-W41").streak).toBe(1);
   });
   it("displays a lapsed streak as zero", () => {
     expect(displayStreak("2026-09-29", "2026-09-30", 6)).toBe(6);
+    expect(displayStreak("2026-09-28", "2026-09-30", 6)).toBe(6);
+    expect(displayStreak("2026-09-28", "2026-09-30", 6, "2026-W40")).toBe(0);
     expect(displayStreak("2026-09-20", "2026-09-30", 6)).toBe(0);
     expect(displayStreak(null, "2026-09-30", 0)).toBe(0);
   });

@@ -2,13 +2,17 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Achievement, Challenge, Profile, UserChallenge } from "@/types/database";
 import { dayKey, periodKey, weekKeyFromDay } from "@/lib/utils/dates";
-import { levelForXp, nextStreak, XP } from "@/features/progress/rules";
+import { levelForXp, nextStreak, XP, type Pillar } from "@/features/progress/rules";
 
 export type ProgressEvent =
   | { kind: "puzzle"; correct: boolean; firstAttempt: boolean; firstSolveEver: boolean; firstSolveToday: boolean }
   | { kind: "lesson"; firstCompletion: boolean }
-  | { kind: "game"; outcome: "win" | "loss" | "draw"; rated: boolean; ratingAfter: number | null; xp: number }
-  | { kind: "review" };
+  | { kind: "game"; outcome: "win" | "loss" | "draw"; rated: boolean; ratingAfter: number | null; xp: number; online?: boolean }
+  | { kind: "review" }
+  | { kind: "story"; firstRead: boolean }
+  | { kind: "thought"; firstAnswer: boolean }
+  | { kind: "reflection" }
+  | { kind: "day" };
 
 export type ProgressResult = {
   xpGained: number;
@@ -21,10 +25,18 @@ export type ProgressResult = {
   newAchievements: { name: string; icon: string }[];
 };
 
-type XpLine = { amount: number; reason: string };
+type XpLine = { amount: number; reason: string; pillar: Pillar | null };
+
+const CHALLENGE_PILLAR: Record<Challenge["metric"], Pillar> = {
+  puzzles_solved: "think",
+  games_played: "play",
+  lessons_completed: "think",
+  win_after_lesson: "play",
+  stories_read: "remember",
+};
 
 /**
- * Applies one validated progress event for a player: XP, streak, counters,
+ * Applies one validated progress event for a player: XP (by pillar), streak, counters,
  * challenge progress and achievements. Call ONLY from server code after the
  * event itself has been verified (legal moves, correct solution, etc.).
  */
@@ -38,50 +50,77 @@ export async function applyProgress(admin: SupabaseClient, userId: string, event
   const patch: Partial<Profile> = {};
   const xpLines: XpLine[] = [];
 
-  // Streak: any learning activity counts as training today.
-  const streak = nextStreak(profile.last_active_date, today, profile.streak);
-  patch.streak = streak;
-  patch.best_streak = Math.max(profile.best_streak, streak);
+  // Streak: any meaningful activity counts as sharpening your mind today.
+  const s = nextStreak(profile.last_active_date, today, profile.streak, profile.rest_week);
+  patch.streak = s.streak;
+  patch.rest_week = s.restWeek;
+  patch.best_streak = Math.max(profile.best_streak, s.streak);
   patch.last_active_date = today;
 
-  // Event-specific counters and XP
   const increments: Partial<Record<Challenge["metric"], number>> = {};
-  if (event.kind === "puzzle") {
-    if (event.firstAttempt) {
-      patch.puzzle_first_attempts = profile.puzzle_first_attempts + 1;
-      if (event.correct) patch.puzzle_first_correct = profile.puzzle_first_correct + 1;
-      const run = event.correct ? profile.puzzle_run + 1 : 0;
-      patch.puzzle_run = run;
-      patch.best_puzzle_run = Math.max(profile.best_puzzle_run, run);
-    }
-    if (event.correct && event.firstSolveEver) {
-      patch.puzzles_solved = profile.puzzles_solved + 1;
-      xpLines.push({ amount: event.firstAttempt ? XP.puzzleFirstTry : XP.puzzleSolved, reason: "Puzzle solved" });
-    }
-    if (event.correct && event.firstSolveToday) increments.puzzles_solved = 1;
-  } else if (event.kind === "lesson") {
-    if (event.firstCompletion) {
-      patch.lessons_completed = profile.lessons_completed + 1;
-      xpLines.push({ amount: XP.lessonCompleted, reason: "Lesson completed" });
-      increments.lessons_completed = 1;
-    }
-  } else if (event.kind === "game") {
-    increments.games_played = 1;
-    if (event.rated) {
-      patch.games_played = profile.games_played + 1;
-      if (event.outcome === "win") patch.wins = profile.wins + 1;
-      if (event.outcome === "loss") patch.losses = profile.losses + 1;
-      if (event.outcome === "draw") patch.draws = profile.draws + 1;
-      if (event.ratingAfter != null) {
-        patch.rating = event.ratingAfter;
-        patch.peak_rating = Math.max(profile.peak_rating, event.ratingAfter);
+  switch (event.kind) {
+    case "puzzle":
+      if (event.firstAttempt) {
+        patch.puzzle_first_attempts = profile.puzzle_first_attempts + 1;
+        if (event.correct) patch.puzzle_first_correct = profile.puzzle_first_correct + 1;
+        const run = event.correct ? profile.puzzle_run + 1 : 0;
+        patch.puzzle_run = run;
+        patch.best_puzzle_run = Math.max(profile.best_puzzle_run, run);
       }
-    }
-    if (event.xp > 0) xpLines.push({ amount: event.xp, reason: event.outcome === "win" ? "Game won" : "Game played" });
-    if (event.outcome === "win") increments.win_after_lesson = 1;
-  } else if (event.kind === "review") {
-    patch.games_reviewed = profile.games_reviewed + 1;
-    xpLines.push({ amount: XP.gameReviewed, reason: "Game reviewed" });
+      if (event.correct && event.firstSolveEver) {
+        patch.puzzles_solved = profile.puzzles_solved + 1;
+        xpLines.push({ amount: event.firstAttempt ? XP.puzzleFirstTry : XP.puzzleSolved, reason: "Puzzle solved", pillar: "think" });
+      }
+      if (event.correct && event.firstSolveToday) increments.puzzles_solved = 1;
+      break;
+    case "lesson":
+      if (event.firstCompletion) {
+        patch.lessons_completed = profile.lessons_completed + 1;
+        xpLines.push({ amount: XP.lessonCompleted, reason: "Lesson completed", pillar: "think" });
+        increments.lessons_completed = 1;
+      }
+      break;
+    case "game":
+      increments.games_played = 1;
+      if (event.rated) {
+        patch.games_played = profile.games_played + 1;
+        if (event.outcome === "win") patch.wins = profile.wins + 1;
+        if (event.outcome === "loss") patch.losses = profile.losses + 1;
+        if (event.outcome === "draw") patch.draws = profile.draws + 1;
+        if (event.ratingAfter != null) {
+          patch.rating = event.ratingAfter;
+          patch.peak_rating = Math.max(profile.peak_rating, event.ratingAfter);
+        }
+      }
+      if (event.online) patch.online_games = profile.online_games + 1;
+      if (event.xp > 0) xpLines.push({ amount: event.xp, reason: event.outcome === "win" ? "Game won" : "Game played", pillar: "play" });
+      if (event.outcome === "win") increments.win_after_lesson = 1;
+      break;
+    case "review":
+      patch.games_reviewed = profile.games_reviewed + 1;
+      xpLines.push({ amount: XP.gameReviewed, reason: "Game reviewed", pillar: "reflect" });
+      break;
+    case "story":
+      if (event.firstRead) {
+        patch.stories_read = profile.stories_read + 1;
+        xpLines.push({ amount: XP.storyRead, reason: "Story read", pillar: "remember" });
+        increments.stories_read = 1;
+      }
+      break;
+    case "thought":
+      if (event.firstAnswer) {
+        patch.thoughts_answered = profile.thoughts_answered + 1;
+        xpLines.push({ amount: XP.thoughtAnswered, reason: "Strategic question", pillar: "think" });
+      }
+      break;
+    case "reflection":
+      patch.reflections = profile.reflections + 1;
+      xpLines.push({ amount: XP.reflection, reason: "Reflection", pillar: "reflect" });
+      break;
+    case "day":
+      patch.days_sharpened = profile.days_sharpened + 1;
+      xpLines.push({ amount: XP.daySharpened, reason: "Mind sharpened today", pillar: "reflect" });
+      break;
   }
 
   // Challenges
@@ -129,13 +168,13 @@ export async function applyProgress(admin: SupabaseClient, userId: string, event
       );
       if (completed) {
         completedChallenges.push({ title: ch.title, rewardXp: ch.reward_xp });
-        xpLines.push({ amount: ch.reward_xp, reason: `Challenge: ${ch.title}` });
+        xpLines.push({ amount: ch.reward_xp, reason: `Challenge: ${ch.title}`, pillar: CHALLENGE_PILLAR[ch.metric] });
       }
     }
   }
 
   // XP and level
-  const xpGained = xpLines.reduce((s, l) => s + l.amount, 0);
+  const xpGained = xpLines.reduce((sum, l) => sum + l.amount, 0);
   const totalXp = profile.xp + xpGained;
   const before = levelForXp(profile.xp);
   const after = levelForXp(totalXp);
@@ -153,6 +192,10 @@ export async function applyProgress(admin: SupabaseClient, userId: string, event
     games_reviewed: merged.games_reviewed,
     best_puzzle_run: merged.best_puzzle_run,
     sankofa_level: merged.sankofa_level,
+    stories_read: merged.stories_read,
+    thoughts_answered: merged.thoughts_answered,
+    days_sharpened: merged.days_sharpened,
+    online_games: merged.online_games,
   };
   const newAchievements: ProgressResult["newAchievements"] = [];
   const [{ data: achData }, { data: earnedData }] = await Promise.all([
@@ -173,7 +216,7 @@ export async function applyProgress(admin: SupabaseClient, userId: string, event
   const { error: updateError } = await admin.from("profiles").update(patch).eq("id", userId);
   if (updateError) throw new Error("Could not save progress");
   if (xpLines.length) {
-    await admin.from("xp_events").insert(xpLines.map((l) => ({ user_id: userId, amount: l.amount, reason: l.reason })));
+    await admin.from("xp_events").insert(xpLines.map((l) => ({ user_id: userId, amount: l.amount, reason: l.reason, pillar: l.pillar })));
   }
 
   return {
@@ -182,7 +225,7 @@ export async function applyProgress(admin: SupabaseClient, userId: string, event
     level: after.level,
     levelName: after.name,
     leveledUp: after.level > before.level,
-    streak,
+    streak: s.streak,
     completedChallenges,
     newAchievements,
   };

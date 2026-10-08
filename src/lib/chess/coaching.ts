@@ -4,7 +4,7 @@
  */
 import { Chess, type Square } from "chess.js";
 import type { Color } from "@/types/database";
-import type { Coaching, GameAnalysis, MoveClass, PlyAnalysis } from "@/lib/chess/analysis-types";
+import type { Coaching, CoachingCause, GameAnalysis, MoveClass, PlyAnalysis } from "@/lib/chess/analysis-types";
 import { uciToMove } from "@/lib/chess/rules";
 
 const PIECE_NAME: Record<string, string> = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king" };
@@ -85,6 +85,7 @@ export function buildCoaching(plies: PlyAnalysis[], ctx: CoachingContext): Coach
       out.next = "Play on. Make your opponent prove the win — at every level, players miss chances when the game goes long.";
     }
     out.lessonSlug = castled ? "fork" : "king-safety";
+    out.cause = ctx.termination === "resignation" && ctx.outcome === "loss" ? "early-resign" : "clean";
     return out;
   }
 
@@ -126,25 +127,57 @@ export function buildCoaching(plies: PlyAnalysis[], ctx: CoachingContext): Coach
     out.why = `You started action while ${undeveloped} of your minor pieces were still at home. With fewer pieces in play, you had fewer defenders when things got sharp.`;
     out.next = "Before your first attack, count your developed pieces. Aim for all four minor pieces out and your king castled.";
     out.lessonSlug = "develop-your-pieces";
+    out.cause = "development";
   } else if (!castled && moveNo >= 10) {
     out.why = "Your king was still in the centre, so every open line became dangerous for you and your pieces were tied to defence.";
     out.next = "Castle within the first ten moves in most openings. A safe king frees your pieces to play.";
     out.lessonSlug = "king-safety";
+    out.cause = "king-safety";
   } else if (earlyQueen) {
     out.why = "Your queen came out early. It became a target, and your opponent developed with tempo by chasing it.";
     out.next = "Develop knights and bishops first; bring the queen out once the minor pieces support it.";
     out.lessonSlug = "opening-principles";
+    out.cause = "early-queen";
   } else if (replyCaptured) {
     out.why = "The move didn’t check what your opponent could capture next. Most games at every level are decided by pieces left undefended.";
     out.next = "Before each move, run a blunder check: what are all of my opponent’s checks and captures after this move?";
     out.lessonSlug = "double-attack";
+    out.cause = "hanging-piece";
   } else {
     out.why = "The move didn’t fit the needs of the position — it gave your opponent time to improve without cost.";
     out.next = "At each turn, ask what your opponent wants to do, then choose a move that stops it or makes your own plan faster.";
     out.lessonSlug = "fork";
+    out.cause = "initiative";
   }
   return out;
 }
+
+/** Cause of the key moment (older saved reviews don't store it, so derive it). */
+export function coachingCause(c: Coaching): CoachingCause {
+  if (c.cause) return c.cause;
+  if (c.keyPly == null) return c.headline.includes("resigned") ? "early-resign" : "clean";
+  switch (c.lessonSlug) {
+    case "develop-your-pieces":
+      return "development";
+    case "king-safety":
+      return "king-safety";
+    case "opening-principles":
+      return "early-queen";
+    case "double-attack":
+      return "hanging-piece";
+    default:
+      return "initiative";
+  }
+}
+
+/** "Think first": the options a player picks from before the coach reveals the answer. */
+export const CAUSE_OPTIONS: { cause: CoachingCause; text: string }[] = [
+  { cause: "development", text: "I attacked before my pieces were ready" },
+  { cause: "king-safety", text: "My king wasn’t safe" },
+  { cause: "hanging-piece", text: "I left something undefended" },
+  { cause: "early-queen", text: "My queen came out too early" },
+  { cause: "initiative", text: "I gave my opponent time to improve" },
+];
 
 /** Guided coach answers used when no AI provider is configured (or as its fallback). */
 export function guidedAnswer(question: string, analysis: GameAnalysis, lessonTitle?: string | null): string {

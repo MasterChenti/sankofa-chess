@@ -155,6 +155,7 @@ const analysisSchema = z.object({
   }),
   plies: z.array(plySchema).max(800),
   coaching: z.object({
+    cause: z.enum(["clean", "early-resign", "development", "king-safety", "early-queen", "hanging-piece", "initiative"]).optional(),
     headline: z.string().max(300),
     what: z.string().max(600),
     why: z.string().max(600),

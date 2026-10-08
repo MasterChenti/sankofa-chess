@@ -2,7 +2,7 @@
  * Pure progression rules — levels, XP, rating, streaks.
  * No I/O here so every rule is unit-tested (rules.test.ts).
  */
-import { previousDayKey } from "@/lib/utils/dates";
+import { previousDayKey, weekKeyFromDay } from "@/lib/utils/dates";
 
 export const SANKOFA_LEVELS = [
   { level: 1, name: "Seed", minXp: 0 },
@@ -39,7 +39,20 @@ export const XP = {
   gameWonBonus: 15,
   gameDrawBonus: 5,
   gameReviewed: 5,
+  storyRead: 12,
+  thoughtAnswered: 8,
+  reflection: 6,
+  daySharpened: 20,
 } as const;
+
+/** The four pillars of a Sankofa day. XP is tracked per pillar so progress means "thinking better", not just "more XP". */
+export type Pillar = "play" | "think" | "remember" | "reflect";
+export const PILLARS: { key: Pillar; label: string; verb: string }[] = [
+  { key: "play", label: "Play", verb: "Compete" },
+  { key: "think", label: "Think", verb: "Solve" },
+  { key: "remember", label: "Remember", verb: "Discover" },
+  { key: "reflect", label: "Reflect", verb: "Learn" },
+];
 
 export const STARTING_RATING = { beginner: 800, intermediate: 1200, advanced: 1600 } as const;
 
@@ -54,17 +67,30 @@ export function clampRating(r: number) {
   return Math.max(100, Math.min(3500, r));
 }
 
-/** Returns the new streak after activity on `today` given the last active day. */
-export function nextStreak(lastActiveDay: string | null, today: string, currentStreak: number): number {
-  if (lastActiveDay === today) return Math.max(1, currentStreak);
-  if (lastActiveDay && previousDayKey(today) === lastActiveDay) return currentStreak + 1;
-  return 1;
+/**
+ * Streak after activity on `today`. Humane by design: one missed day per ISO week is forgiven
+ * (a "rest day"), so the streak rewards habit without punishing a single busy day.
+ */
+export function nextStreak(
+  lastActiveDay: string | null,
+  today: string,
+  currentStreak: number,
+  restWeek: string | null = null,
+): { streak: number; restWeek: string | null } {
+  if (lastActiveDay === today) return { streak: Math.max(1, currentStreak), restWeek };
+  if (lastActiveDay && previousDayKey(today) === lastActiveDay) return { streak: currentStreak + 1, restWeek };
+  const week = weekKeyFromDay(today);
+  if (lastActiveDay && previousDayKey(previousDayKey(today)) === lastActiveDay && restWeek !== week && currentStreak > 0) {
+    return { streak: currentStreak + 1, restWeek: week };
+  }
+  return { streak: 1, restWeek };
 }
 
-/** Streak shown to the user: it silently lapses if they missed yesterday. */
-export function displayStreak(lastActiveDay: string | null, today: string, storedStreak: number): number {
+/** Streak shown to the user: alive if they were active today, yesterday, or the day before with a rest day available. */
+export function displayStreak(lastActiveDay: string | null, today: string, storedStreak: number, restWeek: string | null = null): number {
   if (!lastActiveDay) return 0;
   if (lastActiveDay === today || previousDayKey(today) === lastActiveDay) return storedStreak;
+  if (previousDayKey(previousDayKey(today)) === lastActiveDay && restWeek !== weekKeyFromDay(today)) return storedStreak;
   return 0;
 }
 

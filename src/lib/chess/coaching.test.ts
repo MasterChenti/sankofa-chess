@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Chess } from "chess.js";
-import { accuracyOf, buildCoaching, classify, guidedAnswer } from "@/lib/chess/coaching";
+import { accuracyOf, buildCoaching, classify, coachingCause, guidedAnswer } from "@/lib/chess/coaching";
 import type { GameAnalysis, PlyAnalysis } from "@/lib/chess/analysis-types";
 import { uciToMove } from "@/lib/chess/rules";
 
@@ -45,6 +45,7 @@ describe("coaching layer", () => {
     const c = buildCoaching(p, { userColor: "w", outcome: "win", termination: "checkmate" });
     expect(c.headline).toBe("You played a clean game.");
     expect(c.keyPly).toBeNull();
+    expect(c.cause).toBe("clean");
   });
 
   it("flags an early attack with undeveloped pieces", () => {
@@ -56,12 +57,16 @@ describe("coaching layer", () => {
     expect(c.headline).toContain("Move 2");
     expect(c.why).toMatch(/minor pieces/);
     expect(c.lessonSlug).toBe("develop-your-pieces");
+    expect(c.cause).toBe("development");
+    // Older saved reviews without a stored cause derive the same answer.
+    expect(coachingCause({ ...c, cause: undefined })).toBe("development");
   });
 
   it("tells a resigner the position was still playable", () => {
     const p = plies(["e2e4", "e7e5"], [0, 0]);
     const c = buildCoaching(p, { userColor: "w", outcome: "loss", termination: "resignation" });
     expect(c.headline).toMatch(/resigned/);
+    expect(coachingCause({ ...c, cause: undefined })).toBe("early-resign");
   });
 
   it("answers common questions without an AI provider", () => {
