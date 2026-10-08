@@ -2,7 +2,10 @@
  * Source of truth for Sankofa Chess seed content.
  * `npm run db:seed:generate` turns this into supabase/seed.sql.
  * Every FEN and solution here is validated by src/content.test.ts.
+ * Stories live in ./stories.ts, strategic thoughts in ./thoughts.ts.
  */
+export { STORIES, type SeedStory } from "./stories";
+export { THOUGHTS, type SeedThought } from "./thoughts";
 
 export type SeedPuzzle = {
   slug: string;
@@ -27,23 +30,12 @@ export type SeedLesson = {
   content: { paragraphs: string[]; fen: string; task: string; accept: string[]; requireMate: boolean };
 };
 
-export type SeedStory = {
-  slug: string;
-  title: string;
-  category: string;
-  excerpt: string;
-  symbol: string;
-  readMinutes: number;
-  paragraphs: string[];
-  source: string;
-};
-
 export type SeedChallenge = {
   slug: string;
   title: string;
   description: string;
   type: "daily" | "weekly" | "learning" | "strategy";
-  metric: "puzzles_solved" | "games_played" | "lessons_completed" | "win_after_lesson";
+  metric: "puzzles_solved" | "games_played" | "lessons_completed" | "win_after_lesson" | "stories_read";
   period: "day" | "week";
   target: number;
   rewardXp: number;
@@ -168,63 +160,12 @@ export const LESSONS: SeedLesson[] = [
     "8/8/8/8/2k5/8/4P3/R3K3 w - - 0 1", "Cut the black king off along the d-file.", ["a1d1"]),
 ];
 
-export const STORIES: SeedStory[] = [
-  { slug: "go-back-and-get-it", title: "Go back and get it", category: "Philosophy", readMinutes: 3, symbol: "sankofa",
-    excerpt: "The Akan word behind this platform, and why it fits a game built on memory.",
-    paragraphs: [
-      "Sankofa comes from the Akan people of Ghana. The word is usually explained as a joining of san (return), ko (go) and fa (fetch): go back and get it.",
-      "It is tied to a proverb: “Se wo were fi na wosankofa a yenkyi” — it is not wrong to go back for that which you have forgotten.",
-      "The Adinkra symbol shows a bird whose feet face forward while its head turns back to pick up an egg from its back. The egg is the knowledge of the past; the forward-facing feet say that you keep moving.",
-      "Chess players live this idea every day. The games you lost, the patterns you almost saw, the openings that went wrong — reviewing them is how you get stronger. Every game review in Sankofa Chess is a small act of sankofa.",
-    ],
-    source: "W. Bruce Willis, The Adinkra Dictionary (1998); Akan oral tradition." },
-  { slug: "the-wisdom-knot", title: "The wisdom knot", category: "Adinkra", readMinutes: 3, symbol: "nyansapo",
-    excerpt: "Adinkra symbols carry whole ideas in a single shape. One of them describes a strong chess player.",
-    paragraphs: [
-      "Adinkra symbols come from the Asante (Ashanti) region of Ghana, where they were traditionally stamped onto cloth. Each symbol stands for a proverb, a value or a historical idea.",
-      "Nyansapo — the wisdom knot — is associated with the idea that a wise person can choose the best means to reach a goal. That is close to a definition of good chess: not the most brilliant move, but the right one for the position.",
-      "Dwennimmen, the ram’s horns, stands for strength combined with humility. Anyone who has lost a won game through overconfidence knows why that pairing matters.",
-    ],
-    source: "W. Bruce Willis, The Adinkra Dictionary (1998)." },
-  { slug: "senterej-chess-at-the-ethiopian-court", title: "Senterej: chess at the Ethiopian court", category: "History", readMinutes: 4, symbol: "board",
-    excerpt: "Long before online blitz, Ethiopia had its own version of the game.",
-    paragraphs: [
-      "Senterej is a traditional Ethiopian form of chess descended from the older shatranj family of games. It was played in Ethiopia for centuries, including at the royal court.",
-      "One of its best-known features is its opening: rather than strictly alternating single moves from the first turn, players could develop freely at their own pace until the first capture, after which play alternated normally.",
-      "That opening rewards exactly what modern coaches teach: quick, purposeful development. Senterej faded in the twentieth century as international rules spread, but it remains part of Africa’s chess story.",
-    ],
-    source: "H. J. R. Murray, A History of Chess (1913); Richard Pankhurst’s writings on Ethiopian games." },
-  { slug: "oware-and-the-art-of-counting-ahead", title: "Oware and the art of counting ahead", category: "Strategy traditions", readMinutes: 3, symbol: "oware",
-    excerpt: "A West African board game that trains the same muscles as chess calculation.",
-    paragraphs: [
-      "Oware is a mancala game played across Ghana and West Africa; the Yoruba version in Nigeria is known as ayo. Two players sow seeds around a board of pits and capture by landing on the right count.",
-      "Good oware players count many sowings ahead and set up captures their opponent doesn’t see coming. It is calculation without pieces — a skill that transfers directly to chess tactics.",
-      "Games like oware remind us that strategic thinking has deep roots on the continent. Chess is one vehicle among many.",
-    ],
-    source: "General ethnographic literature on mancala games (editorial review pending before launch)." },
-  { slug: "africas-modern-masters", title: "Africa’s modern masters", category: "Innovators", readMinutes: 4, symbol: "crown",
-    excerpt: "The players who put African chess on the world map.",
-    paragraphs: [
-      "Egypt’s Bassem Amin is widely regarded as Africa’s strongest player of recent years and a multiple African champion.",
-      "Zambia’s Amon Simutowe became one of the first grandmasters from sub-Saharan Africa, and South Africa’s Kenny Solomon became the country’s first grandmaster in 2014.",
-      "Uganda’s Phiona Mutesi learned the game in the Katwe neighbourhood of Kampala and represented her country at Chess Olympiads; her story was told in the 2016 film Queen of Katwe.",
-      "Each of them started somewhere ordinary. The next one could be starting today.",
-    ],
-    source: "FIDE records and public reporting (editorial review pending before launch)." },
-  { slug: "the-oldest-trap-on-the-board", title: "The oldest trap on the board", category: "History", readMinutes: 3, symbol: "arabian",
-    excerpt: "A rook and knight pattern that has been winning games for over a thousand years.",
-    paragraphs: [
-      "The Arabian mate — rook and knight trapping a king in the corner — is one of the oldest checkmate patterns on record, found in early Arabic writings on shatranj, the ancestor of modern chess.",
-      "Chess itself travelled through the Islamic world and across North Africa into Spain and the rest of Europe. The game Europe inherited had already passed through many African and Arab hands.",
-      "You can solve this exact pattern in the puzzle set. Old wisdom still wins games.",
-    ],
-    source: "H. J. R. Murray, A History of Chess (1913)." },
-];
 
 export const CHALLENGES: SeedChallenge[] = [
   { slug: "daily-3-puzzles", title: "Solve 3 puzzles", description: "Keep your pattern memory sharp.", type: "daily", metric: "puzzles_solved", period: "day", target: 3, rewardXp: 50, href: "/app/puzzles" },
   { slug: "weekly-10-games", title: "Play 10 games", description: "Any time control, any opponent.", type: "weekly", metric: "games_played", period: "week", target: 10, rewardXp: 150, href: "/app/play" },
   { slug: "learning-2-lessons", title: "Complete 2 lessons", description: "Two new ideas this week.", type: "learning", metric: "lessons_completed", period: "week", target: 2, rewardXp: 80, href: "/app/learn" },
+  { slug: "remember-3-stories", title: "Read 3 Sankofa Stories", description: "Go back and get it, three times this week.", type: "learning", metric: "stories_read", period: "week", target: 3, rewardXp: 60, href: "/app/discover" },
   { slug: "strategy-win-after-lesson", title: "Win a game after completing a lesson", description: "Learn it, then use it.", type: "strategy", metric: "win_after_lesson", period: "week", target: 1, rewardXp: 100, href: "/app/learn" },
 ];
 
@@ -237,6 +178,10 @@ export const ACHIEVEMENTS: SeedAchievement[] = [
   { slug: "go-back-and-get-it", name: "Go Back and Get It", description: "Review a game with the coach", icon: "rotate-ccw", requirement: { metric: "games_reviewed", count: 1 } },
   { slug: "sharp-eye", name: "Sharp Eye", description: "Solve 5 puzzles in a row first time", icon: "zap", requirement: { metric: "best_puzzle_run", count: 5 } },
   { slug: "strategist", name: "Strategist", description: "Reach Sankofa Level 4", icon: "crown", requirement: { metric: "sankofa_level", count: 4 } },
+  { slug: "storykeeper", name: "Storykeeper", description: "Read 5 Sankofa Stories", icon: "scroll", requirement: { metric: "stories_read", count: 5 } },
+  { slug: "deep-thinker", name: "Deep Thinker", description: "Answer 7 strategic questions", icon: "lightbulb", requirement: { metric: "thoughts_answered", count: 7 } },
+  { slug: "seven-mornings", name: "Seven Mornings", description: "Complete your daily Sankofa 7 times", icon: "sunrise", requirement: { metric: "days_sharpened", count: 7 } },
+  { slug: "first-handshake", name: "First Handshake", description: "Finish a game against a real person", icon: "handshake", requirement: { metric: "online_games", count: 1 } },
 ];
 
 /** Seeded demo players so the leaderboard feels alive before real rated play. */

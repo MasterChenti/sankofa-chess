@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, nextjs-app]
+    branches: ['**', '!ci-report']
   pull_request:
   workflow_dispatch:
 
@@ -59,7 +59,7 @@ jobs:
         id: supabase
         continue-on-error: true
         run: |
-          (npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta || npx supabase start) 2>&1 | tee ci-logs/supabase.log
+          (npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,storage-api,postgres-meta || npx supabase start) 2>&1 | tee ci-logs/supabase.log
           npx supabase status -o env > supabase.env 2>> ci-logs/supabase.log
           sed -E 's/(KEY|SECRET)=.*/\1=<redacted>/' supabase.env >> ci-logs/supabase.log
           set -a; . ./supabase.env; set +a

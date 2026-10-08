@@ -6,7 +6,7 @@
  */
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ACHIEVEMENTS, CHALLENGES, DEMO_LOGIN, DEMO_PLAYERS, LESSONS, PUZZLES, STORIES } from "../supabase/content/content";
+import { ACHIEVEMENTS, CHALLENGES, DEMO_LOGIN, DEMO_PLAYERS, LESSONS, PUZZLES, STORIES, THOUGHTS } from "../supabase/content/content";
 
 const root = join(__dirname, "..");
 const q = (s: string | null | undefined) => (s == null ? "null" : `'${s.replace(/'/g, "''")}'`);
@@ -37,12 +37,24 @@ export function buildSeedSql(): string {
     );
   });
 
-  out.push("\n-- Stories");
+  out.push("\n-- Stories (structured). Retired slugs are removed so old content never resurfaces.");
+  out.push(`delete from public.stories where locale = 'en' and slug not in (${STORIES.map((s) => q(s.slug)).join(", ")});`);
   STORIES.forEach((s, i) => {
+    const structure = { sections: s.sections, think: s.think, outcome: s.outcome, sankofa: s.sankofa, known: s.known, debated: s.debated };
+    const plain = [...s.sections.flatMap((x) => x.body), ...s.outcome.body, s.sankofa].join("\n\n");
     out.push(
-      `insert into public.stories (slug, title, excerpt, content, category, symbol, read_minutes, source, published_at) values (${[
-        q(s.slug), q(s.title), q(s.excerpt), q(s.paragraphs.join("\n\n")), q(s.category), q(s.symbol), s.readMinutes, q(s.source), `now() - interval '${STORIES.length - i} days'`,
-      ].join(", ")}) on conflict (slug) do update set title = excluded.title, excerpt = excluded.excerpt, content = excluded.content, category = excluded.category, symbol = excluded.symbol, read_minutes = excluded.read_minutes, source = excluded.source;`,
+      `insert into public.stories (slug, locale, title, excerpt, content, category, symbol, read_minutes, source, region, country, place, era, kind, structure, published_at) values (${[
+        q(s.slug), q("en"), q(s.title), q(s.excerpt), q(plain), q(s.category), q(s.symbol), s.readMinutes, q(s.source), q(s.region), q(s.country), q(s.place), q(s.era), q(s.kind), json(structure), `now() - interval '${STORIES.length - i} days'`,
+      ].join(", ")}) on conflict (slug, locale) do update set title = excluded.title, excerpt = excluded.excerpt, content = excluded.content, category = excluded.category, symbol = excluded.symbol, read_minutes = excluded.read_minutes, source = excluded.source, region = excluded.region, country = excluded.country, place = excluded.place, era = excluded.era, kind = excluded.kind, structure = excluded.structure;`,
+    );
+  });
+
+  out.push("\n-- Strategic thoughts");
+  THOUGHTS.forEach((t, i) => {
+    out.push(
+      `insert into public.thoughts (slug, locale, prompt, context, options, takeaway, lesson_slug, sort_order) values (${[
+        q(t.slug), q("en"), q(t.prompt), q(t.context), json(t.options), q(t.takeaway), q(t.lessonSlug), i + 1,
+      ].join(", ")}) on conflict (slug, locale) do update set prompt = excluded.prompt, context = excluded.context, options = excluded.options, takeaway = excluded.takeaway, lesson_slug = excluded.lesson_slug, sort_order = excluded.sort_order;`,
     );
   });
 
@@ -88,7 +100,7 @@ on conflict do nothing;`,
     const draws = Math.round(p.games * 0.08);
     out.push(u, ident);
     out.push(
-      `update public.profiles set is_demo = true, onboarded_at = now(), rating = ${p.rating}, peak_rating = ${p.rating + 25}, xp = ${p.xp}, sankofa_level = ${levelForXp(p.xp)}, games_played = ${p.games}, wins = ${wins}, draws = ${draws}, losses = ${p.games - wins - draws}, streak = ${(i * 3) % 11}, best_streak = ${10 + (i % 9)} where id = '${id}';`,
+      `update public.profiles set is_demo = true, onboarded_at = now(), rating = ${p.rating}, peak_rating = ${p.rating + 25}, xp = ${p.xp}, sankofa_level = ${levelForXp(p.xp)}, games_played = ${p.games}, wins = ${wins}, draws = ${draws}, losses = ${p.games - wins - draws}, streak = ${(i * 3) % 11}, best_streak = ${10 + (i % 9)}, stories_read = ${(i * 7) % 15}, thoughts_answered = ${(i * 5) % 12}, days_sharpened = ${(i * 4) % 30}, online_games = ${Math.round(p.games * 0.3)} where id = '${id}';`,
     );
   });
 
@@ -115,6 +127,14 @@ function main() {
     join(root, "supabase", "setup.sql"),
     `-- Sankofa Chess: one-paste setup for a NEW Supabase project (SQL Editor → New query → Run).\n-- Contains every migration followed by the seed data. Generated — do not edit by hand.\n\n${migrations.join("\n\n")}\n\n-- ===== seed =====\n${seed}`,
   );
+  // Upgrade scripts for projects created with an earlier setup.sql: each new migration + the (idempotent) seed.
+  const upgrades = readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort().slice(1);
+  for (const f of upgrades) {
+    writeFileSync(
+      join(root, "supabase", `upgrade-${f.replace(/^\d+_/, "")}`),
+      `-- Sankofa Chess upgrade for an EXISTING Supabase project (SQL Editor → New query → Run).\n-- Safe to run more than once. Generated — do not edit by hand.\n\n-- ===== ${f} =====\n${readFileSync(join(migDir, f), "utf8")}\n\n-- ===== seed (idempotent) =====\n${seed}`,
+    );
+  }
   console.log(`seed.sql and setup.sql written (${PUZZLES.length} puzzles, ${LESSONS.length} lessons, ${STORIES.length} stories).`);
 }
 

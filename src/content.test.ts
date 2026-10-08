@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Chess } from "chess.js";
-import { LESSONS, PUZZLES, STORIES, CHALLENGES, ACHIEVEMENTS } from "../supabase/content/content";
+import { LESSONS, PUZZLES, STORIES, THOUGHTS, CHALLENGES, ACHIEVEMENTS } from "../supabase/content/content";
+import { REGION_LABEL } from "@/features/today/plan";
 import { checkPuzzleLine } from "@/features/puzzles/logic";
 import { checkLessonMove } from "@/features/learning/logic";
 import { uciToMove } from "@/lib/chess/rules";
@@ -81,5 +82,51 @@ describe("seed", () => {
   });
   it("every story cites a source", () => {
     for (const s of STORIES) expect(s.source.length).toBeGreaterThan(5);
+  });
+  it("generates SQL for every strategic question", () => {
+    expect(buildSeedSql().match(/insert into public\.thoughts/g)?.length).toBe(THOUGHTS.length);
+  });
+});
+
+describe("story content", () => {
+  it("slugs are unique", () => {
+    expect(new Set(STORIES.map((s) => s.slug)).size).toBe(STORIES.length);
+  });
+  it.each(STORIES.map((s) => [s.slug, s] as const))("%s: is a complete, sourced experience", (_slug, s) => {
+    expect(Object.keys(REGION_LABEL)).toContain(s.region);
+    expect(s.sections.length).toBeGreaterThan(0);
+    for (const sec of s.sections) expect(sec.body.length).toBeGreaterThan(0);
+    expect(s.think.options.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(s.think.options.map((o) => o.key)).size).toBe(s.think.options.length);
+    for (const o of s.think.options) expect(o.key.length).toBeLessThanOrEqual(4);
+    expect(s.outcome.body.length).toBeGreaterThan(0);
+    expect(s.sankofa.length).toBeGreaterThan(10);
+    // Fact vs interpretation must be explicit.
+    expect(s.known.length).toBeGreaterThan(0);
+    expect(s.debated.length).toBeGreaterThan(0);
+    expect(s.source.length).toBeGreaterThan(5);
+  });
+  it("covers the diversity of the continent and the diaspora", () => {
+    const regions = new Set(STORIES.map((s) => s.region));
+    for (const r of ["west", "east", "north", "central", "southern", "diaspora"]) expect([...regions]).toContain(r);
+  });
+});
+
+describe("strategic questions", () => {
+  const styles = ["patient", "bold", "diplomatic", "adaptive", "principled"];
+  const lessons = new Set(LESSONS.map((l) => l.slug));
+  it("slugs are unique", () => {
+    expect(new Set(THOUGHTS.map((t) => t.slug)).size).toBe(THOUGHTS.length);
+  });
+  it.each(THOUGHTS.map((t) => [t.slug, t] as const))("%s: options have styles and perspectives", (_slug, t) => {
+    expect(t.options.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(t.options.map((o) => o.key)).size).toBe(t.options.length);
+    for (const o of t.options) {
+      expect(styles).toContain(o.style);
+      expect(o.perspective.length).toBeGreaterThan(10);
+      expect(o.key.length).toBeLessThanOrEqual(4);
+    }
+    expect(t.takeaway.length).toBeGreaterThan(10);
+    if (t.lessonSlug) expect(lessons.has(t.lessonSlug)).toBe(true);
   });
 });
