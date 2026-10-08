@@ -57,9 +57,26 @@ function saveLive(g: Live | null) {
   }
 }
 
-export function PlayClient({ playerName, playerRating, initial }: { playerName: string; playerRating: number; initial: string }) {
+/** True when an unfinished game against the computer is saved on this device. */
+export function hasActiveComputerGame() {
+  return loadLive() !== null;
+}
+
+export type PlayPreset = Partial<Pick<Setup, "personaId" | "timeControl">>;
+
+export function PlayClient({
+  playerName,
+  playerRating,
+  initial,
+  preset,
+}: {
+  playerName: string;
+  playerRating: number;
+  initial: string;
+  preset?: PlayPreset;
+}) {
   const router = useRouter();
-  const [setup, setSetup] = React.useState<Setup>({ mode: "ai", personaId: "kwaku", color: "w", timeControl: "10+0" });
+  const [setup, setSetup] = React.useState<Setup>({ mode: "ai", personaId: "kwaku", color: "w", timeControl: "10+0", ...preset });
   const [live, setLive] = React.useState<Live | null>(null);
   const [hydrated, setHydrated] = React.useState(false);
   const [engineState, setEngineState] = React.useState<"loading" | "ready" | "fallback">("loading");
