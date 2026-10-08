@@ -97,6 +97,14 @@ jobs:
             echo "::notice title=e2e::$(echo "$line" | cut -c1-300)"
           done
 
+      - name: Upload e2e screenshots and traces
+        if: always() && steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: test-results/
+          retention-days: 7
+
       - name: Write job summary
         if: always()
         run: |

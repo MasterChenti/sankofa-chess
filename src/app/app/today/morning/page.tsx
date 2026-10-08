@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, Bot, Check, Sunrise, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { requirePlayer } from "@/features/auth/session";
@@ -29,7 +30,10 @@ export default async function MorningPage({ searchParams }: { searchParams: Prom
   const { supabase, profile } = await requirePlayer();
   const today = await getToday(supabase, profile);
   const { status, puzzle, story, thought, session } = today;
-  const step: StepKey | "done" = requested && VALID.has(requested) ? (requested as StepKey | "done") : nextStep(status);
+  // Always pin the step in the URL: finishing a step revalidates the page, and the
+  // player must stay on it (to see the solution or the story's outcome) until they continue.
+  if (!requested || !VALID.has(requested)) redirect(`${BASE}?step=${nextStep(status)}`);
+  const step = requested as StepKey | "done";
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
