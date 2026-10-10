@@ -53,7 +53,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
       <PageHeader title="Community" description="Where Africa’s thinkers stand: ratings from rated games against people and the Sankofa computer opponents." />
       <nav aria-label="Leaderboard" className="scrollbar-none mb-5 flex w-fit max-w-full gap-1 overflow-x-auto rounded-[var(--radius-md)] bg-surface-2 p-1">
         {TABS.map((k) => (
-          <Link
+          <a
             key={k}
             href={k === "global" ? "/app/community" : `/app/community?tab=${k}`}
             aria-current={tab === k ? "page" : undefined}
@@ -63,7 +63,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
             )}
           >
             {tabLabel(k)}
-          </Link>
+          </a>
         ))}
       </nav>
 

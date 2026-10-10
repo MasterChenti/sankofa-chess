@@ -55,7 +55,6 @@ test("discover and think are explorable outside the daily session", async ({ pag
   await signUpAndOnboard(page);
   await page.goto("/app/discover");
   await expect(page.getByTestId("discover-today")).toBeVisible();
-  await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: /^West Africa \d+$/ }).click();
   await expect(page).toHaveURL(/region=west/);
   await page.screenshot({ path: "test-results/screens/15-discover.png", fullPage: true });

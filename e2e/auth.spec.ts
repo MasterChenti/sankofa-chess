@@ -53,7 +53,8 @@ test("the seeded demo account can log in", async ({ page }) => {
   await page.goto("/app/leaderboard");
   await expect(page).toHaveURL(/\/app\/community/);
   await expect(page.getByRole("cell", { name: /kwame_opens/ })).toBeVisible();
-  await page.goto("/app/community?tab=countries");
+  await page.getByRole("link", { name: "Countries", exact: true }).click();
+  await expect(page).toHaveURL(/tab=countries/);
   await expect(page.getByTestId("countries-table")).toBeVisible();
   await page.screenshot({ path: "test-results/screens/03-leaderboard.png", fullPage: true });
 });

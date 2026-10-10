@@ -142,7 +142,8 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
 
 function FilterChip({ href, active, subtle, children }: { href: string; active: boolean; subtle?: boolean; children: React.ReactNode }) {
   return (
-    <Link
+    // A plain link on purpose: filters are a full, cheap page load that always works, even mid-hydration on a slow phone.
+    <a
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
@@ -152,6 +153,6 @@ function FilterChip({ href, active, subtle, children }: { href: string; active: 
       )}
     >
       {children}
-    </Link>
+    </a>
   );
 }
