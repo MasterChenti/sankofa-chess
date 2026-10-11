@@ -22,7 +22,7 @@ const GOALS: [Goal, string, string][] = [
   ["fun", "Play for fun", "Good games, no pressure."],
 ];
 
-export function OnboardingFlow({ name, initialLevel }: { name: string; initialLevel: ChessLevel }) {
+export function OnboardingFlow({ name, initialLevel, next }: { name: string; initialLevel: ChessLevel; next?: string }) {
   const [step, setStep] = React.useState(0);
   const [level, setLevel] = React.useState<ChessLevel>(initialLevel);
   const [goal, setGoal] = React.useState<Goal | null>(null);
@@ -34,7 +34,7 @@ export function OnboardingFlow({ name, initialLevel }: { name: string; initialLe
     setError(null);
     start(async () => {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const res = await completeOnboarding({ chessLevel: level, goal, timezone: tz });
+      const res = await completeOnboarding({ chessLevel: level, goal, timezone: tz }, next);
       if (res?.message) setError(res.message);
     });
   }

@@ -5,8 +5,8 @@ export function uniqueUser() {
   return { name: "Ama", username: `ama_${n}`.slice(0, 20), email: `ama+${n}@example.com`, password: "sankofa-test-123" };
 }
 
-export async function signUpAndOnboard(page: Page, user = uniqueUser()) {
-  await page.goto("/signup");
+export async function signUpAndOnboard(page: Page, user = uniqueUser(), opts: { alreadyOnSignup?: boolean; landsOn?: RegExp } = {}) {
+  if (!opts.alreadyOnSignup) await page.goto("/signup");
   await page.getByLabel("First name").fill(user.name);
   await page.getByLabel("Username").fill(user.username);
   await page.getByLabel("Email").fill(user.email);
@@ -22,7 +22,7 @@ export async function signUpAndOnboard(page: Page, user = uniqueUser()) {
   await page.getByRole("button", { name: /Improve tactics/ }).click();
   await page.getByTestId("onboarding-next").click();
   await page.getByTestId("onboarding-finish").click();
-  await expect(page).toHaveURL(/\/app\/today/);
+  await expect(page).toHaveURL(opts.landsOn ?? /\/app\/today/);
   return user;
 }
 

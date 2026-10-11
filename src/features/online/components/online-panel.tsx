@@ -93,7 +93,7 @@ export function OnlinePanel({
     const r = await createInvite(mode, "random");
     setInviting(false);
     if (!r.ok) setError(r.message);
-    else setInvite({ url: `${origin}/app/play/join/${r.code}`, gameId: r.gameId });
+    else setInvite({ url: `${origin}/join/${r.code}`, gameId: r.gameId });
   }
 
   const seg = (on: boolean) =>

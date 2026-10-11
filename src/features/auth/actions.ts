@@ -54,7 +54,13 @@ function authMessage(code: string | undefined, fallback: string) {
   }
 }
 
-export async function signUp(input: unknown): Promise<ActionState> {
+/** Where a new player goes after creating an account: onboarding, then (if they came from an invite) back to it. */
+function onboardingPath(next?: string) {
+  const target = next ? safeNext(next, "") : "";
+  return target ? `/onboarding?next=${encodeURIComponent(target)}` : "/onboarding";
+}
+
+export async function signUp(input: unknown, next?: string): Promise<ActionState> {
   const parsed = signupSchema.safeParse(input);
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error.issues) };
   const data = parsed.data;
@@ -69,7 +75,7 @@ export async function signUp(input: unknown): Promise<ActionState> {
     email: data.email,
     password: data.password,
     options: {
-      emailRedirectTo: `${origin}/auth/confirm?next=/onboarding`,
+      emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(onboardingPath(next))}`,
       data: {
         username: data.username,
         display_name: data.displayName,
@@ -87,7 +93,7 @@ export async function signUp(input: unknown): Promise<ActionState> {
 
   track("signup_completed", { level: data.chessLevel });
   if (!result.session) return { ok: true, checkEmail: true };
-  redirect("/onboarding");
+  redirect(onboardingPath(next));
 }
 
 export async function logIn(input: unknown, next?: string): Promise<ActionState> {
@@ -117,7 +123,7 @@ export async function signOut() {
   redirect("/");
 }
 
-export async function completeOnboarding(input: unknown): Promise<ActionState> {
+export async function completeOnboarding(input: unknown, next?: string): Promise<ActionState> {
   const parsed = onboardingSchema.safeParse(input);
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error.issues) };
   const supabase = await createClient();
@@ -142,7 +148,7 @@ export async function completeOnboarding(input: unknown): Promise<ActionState> {
   const { error } = await admin.from("profiles").update(patch).eq("id", user.id);
   if (error) return { message: "We couldn’t save your choices. Please try again." };
   track("onboarding_completed", { goal: parsed.data.goal });
-  redirect("/app/today");
+  redirect(safeNext(next));
 }
 
 export async function updateProfile(input: unknown): Promise<ActionState> {

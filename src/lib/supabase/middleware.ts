@@ -30,6 +30,10 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+
+  // Older invite links pointed inside the app; send them to the public invite page.
+  const oldInvite = path.match(/^\/app\/play\/join\/([a-z2-9]{8})$/);
+  if (oldInvite) return NextResponse.redirect(new URL(`/join/${oldInvite[1]}`, request.url));
   const isProtected = PROTECTED.some((p) => path === p || path.startsWith(p + "/"));
   const isAuthPage = AUTH_PAGES.includes(path);
 
@@ -41,10 +45,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app/today";
-    url.search = "";
-    return NextResponse.redirect(url);
+    // Already signed in: go where they were heading (e.g. an invite), else Today.
+    const next = request.nextUrl.searchParams.get("next");
+    const target = next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : "/app/today";
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   return response;

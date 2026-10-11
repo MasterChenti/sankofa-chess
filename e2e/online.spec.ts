@@ -73,3 +73,33 @@ test("matchmaking pairs two players searching at the same time", async ({ browse
   await expect(a.getByTestId("live-result")).toContainText("Aborted.");
   await expect(b.getByTestId("live-result")).toContainText("Aborted.", { timeout: 30_000 });
 });
+
+test("a friend without an account opens the invite, signs up and lands straight in the game", async ({ browser }) => {
+  test.setTimeout(200_000);
+  const a = await (await browser.newContext()).newPage();
+  const b = await (await browser.newContext()).newPage();
+  const host = await signUpAndOnboard(a);
+
+  await a.goto("/app/play?tab=people");
+  await a.getByTestId("invite-friend").click();
+  const path = new URL((await a.getByTestId("invite-link").textContent())!.trim()).pathname;
+  expect(path).toMatch(/^\/join\/[a-z2-9]{8}$/);
+
+  // Logged out: the invite page shows who is challenging, without asking to log in first.
+  await b.goto(path);
+  await expect(b.getByRole("heading", { level: 1 })).toHaveText(`${host.name} challenges you.`);
+  await b.screenshot({ path: "test-results/screens/17-invite-logged-out.png", fullPage: true });
+  await b.getByTestId("invite-signup").click();
+  await expect(b).toHaveURL(/\/signup\?next=/);
+  await expect(b.getByText(`Then you go straight to your game with ${host.name}.`)).toBeVisible();
+
+  // Sign-up and onboarding bring them back to the same invite, ready to accept.
+  await signUpAndOnboard(b, undefined, { alreadyOnSignup: true, landsOn: new RegExp(`${path}$`) });
+  await b.getByTestId("accept-challenge").click();
+  await expect(b).toHaveURL(/\/app\/play\/live\//);
+  await expect(b.getByTestId("live-status")).not.toHaveText("Waiting for your friend to join…");
+
+  // Old-style links still work.
+  await b.goto(`/app/play/join/${path.split("/").pop()}`);
+  await expect(b).toHaveURL(new RegExp(`${path}$`));
+});

@@ -36,7 +36,7 @@ export default async function LiveGamePage({ params }: { params: Promise<{ id: s
         meId={profile.id}
         white={game.white_id ? (players.get(game.white_id) ?? null) : null}
         black={game.black_id ? (players.get(game.black_id) ?? null) : null}
-        inviteUrl={game.invite_code ? `${origin}/app/play/join/${game.invite_code}` : null}
+        inviteUrl={game.invite_code ? `${origin}/join/${game.invite_code}` : null}
         reviewGameId={(mine as { id: string } | null)?.id ?? null}
       />
     </>

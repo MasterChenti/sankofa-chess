@@ -4,14 +4,17 @@ import { redirect } from "next/navigation";
 import { Wordmark } from "@/components/brand/logo";
 import { OnboardingFlow } from "@/features/auth/components/onboarding-flow";
 import { getSession } from "@/features/auth/session";
+import { safeNext } from "@/features/auth/schemas";
 
 export const metadata: Metadata = { title: "Welcome" };
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const { next: rawNext } = await searchParams;
+  const next = rawNext ? safeNext(rawNext, "") || undefined : undefined;
   const { user, profile } = await getSession();
-  if (!user) redirect("/login?next=/onboarding");
-  if (profile?.onboarded_at) redirect("/app/today");
+  if (!user) redirect(`/login?next=${encodeURIComponent(next ? `/onboarding?next=${encodeURIComponent(next)}` : "/onboarding")}`);
+  if (profile?.onboarded_at) redirect(safeNext(next));
 
   return (
     <div className="min-h-dvh">
@@ -22,7 +25,7 @@ export default async function OnboardingPage() {
       </header>
       <main className="mx-auto w-full max-w-[520px] px-4 pb-20 pt-8 sm:pt-14">
         {profile ? (
-          <OnboardingFlow name={profile.display_name} initialLevel={profile.chess_level} />
+          <OnboardingFlow name={profile.display_name} initialLevel={profile.chess_level} next={next} />
         ) : (
           <p className="text-muted-foreground">We’re setting up your profile. Refresh in a moment.</p>
         )}

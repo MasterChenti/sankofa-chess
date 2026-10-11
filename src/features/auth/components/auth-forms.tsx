@@ -54,7 +54,7 @@ function Divider({ children }: { children: React.ReactNode }) {
 
 type SignupValues = z.input<typeof signupSchema>;
 
-export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
+export function SignupForm({ googleEnabled, next, invitedBy }: { googleEnabled: boolean; next?: string; invitedBy?: string | null }) {
   const [state, setState] = React.useState<ActionState>({});
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
@@ -66,7 +66,7 @@ export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   const onSubmit = handleSubmit(async (values) => {
     setState({});
-    const res = await signUp(values);
+    const res = await signUp(values, next);
     if (!res) return;
     if (res.fieldErrors) Object.entries(res.fieldErrors).forEach(([k, m]) => setError(k as keyof SignupValues, { message: m }));
     setState(res);
@@ -88,9 +88,13 @@ export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5">
         <h1 className="text-[2.2rem] font-semibold leading-tight">Create your account</h1>
-        <p className="text-muted-foreground">It takes a minute. Your progress is saved from your first move.</p>
+        <p className="text-muted-foreground">
+          {invitedBy
+            ? `It takes a minute. Then you go straight to your game with ${invitedBy}.`
+            : "It takes a minute. Your progress is saved from your first move."}
+        </p>
       </div>
-      <GoogleButton enabled={googleEnabled} next="/onboarding" />
+      <GoogleButton enabled={googleEnabled} next={next ? `/onboarding?next=${encodeURIComponent(next)}` : "/onboarding"} />
       <Divider>or with email</Divider>
       <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -158,7 +162,7 @@ export function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
       </form>
       <p className="text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/login" className="font-semibold text-accent-foreground hover:underline">
+        <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="font-semibold text-accent-foreground hover:underline">
           Log in
         </Link>
       </p>
@@ -209,7 +213,7 @@ export function LoginForm({ googleEnabled, next, notice }: { googleEnabled: bool
       </form>
       <p className="text-sm text-muted-foreground">
         New to Sankofa Chess?{" "}
-        <Link href="/signup" className="font-semibold text-accent-foreground hover:underline">
+        <Link href={next && next !== "/app/today" ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} className="font-semibold text-accent-foreground hover:underline">
           Create an account
         </Link>
       </p>
