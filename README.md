@@ -125,6 +125,7 @@ When a release adds a migration, the repo ships an idempotent `supabase/upgrade-
 
 - **Unit (Vitest):** progression rules, dates/time zones, chess rules (castling, promotion, en passant, mate, stalemate), server-side game verification, puzzle and lesson checking, every seeded FEN/solution, coaching layer.
 - **End-to-end (Playwright, mobile viewport):** the full Today session to “sharpened”, two real players by invite link playing to checkmate, matchmaking + abort, discover/think, landing, sign-up validation, sign-up → onboarding → dashboard, logout/login, demo login + leaderboard, full game vs computer → resign → saved → coached review → chat, pass & play checkmate, puzzle wrong → retry → correct, multi-move puzzle, daily progress, lesson completion persisting across reloads, profile and challenges.
+- **Computer opponent (Playwright, Chromium + WebKit with an iPhone profile):** the computer answers by itself for ten plies and every reply comes from Stockfish (not the backup engine); playing Black, it opens on its own; checkmate ends the game with no further engine move; a new game never receives a stale reply; with the engine blocked, the player is told and the lighter engine plays. WebKit is Safari's engine but not a real iPhone: background suspension and real-device memory limits are covered by unit tests (timeouts, crashes, worker replacement) and need a manual check on a phone.
 - **CI:** `.github/workflows/ci.yml` runs lint, typecheck, unit tests, seed freshness, a local Supabase, the production build and Playwright on every push.
 
 ---
