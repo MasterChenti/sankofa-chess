@@ -62,9 +62,8 @@ test("Test C: playing Black, the computer opens as White on its own", async ({ p
 
 test("Test E: checkmate ends the game and the computer makes no further move", async ({ page }) => {
   await signUpAndOnboard(page);
-  // A saved game (the app restores unfinished games): White to play Qxf7#.
-  await page.goto("/app/play?tab=computer");
-  await page.evaluate(() => {
+  // A saved game (the app restores unfinished games): White to play Qxf7#. Written before the page loads.
+  await page.addInitScript(() => {
     localStorage.setItem(
       "sankofa.active-game.v1",
       JSON.stringify({
@@ -80,7 +79,7 @@ test("Test E: checkmate ends the game and the computer makes no further move", a
       }),
     );
   });
-  await page.reload();
+  await page.goto("/app/play?tab=computer");
   await expect(page.getByTestId("game-status")).toHaveText("Your move.");
   await move(page, "play-board", "h5", "f7");
   await expect(page.getByTestId("game-status")).toHaveText("White wins by checkmate.");
