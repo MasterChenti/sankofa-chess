@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { getEngine } from "@/lib/chess/engine";
+import { getEngine, resetEngine } from "@/lib/chess/engine";
+import { toast } from "sonner";
 import { lineScore } from "@/lib/chess/engine/types";
 import { analyzeGame } from "@/lib/chess/analysis";
 import type { GameAnalysis } from "@/lib/chess/analysis-types";
@@ -47,6 +48,7 @@ export function ReviewClient({ game, lessons }: { game: GameRow; lessons: Lesson
       if (saved.ok) celebrate(saved.progress, "Game reviewed");
     } catch (e) {
       console.error(e);
+      resetEngine(); // "Try again" starts from a fresh engine
       setFailed(true);
     }
   }, [game]);
@@ -232,9 +234,28 @@ function ReviewBody({ game, analysis, lessons }: { game: GameRow; analysis: Game
           </div>
           <EvalGraph plies={analysis.plies} activePly={ply} onSelect={setPly} keyPly={c.keyPly} />
           <MoveList sans={analysis.plies.map((p) => p.san)} classes={analysis.plies.map((p) => p.cls)} activePly={ply} onSelect={setPly} className="max-h-72" />
-          <p className="text-xs text-faint">
-            Engine: {analysis.engine}. Result: {game.result} by {TERMINATION_LABEL[game.termination as Termination] ?? game.termination}.
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-faint">
+              Engine: {analysis.engine}. Result: {game.result} by {TERMINATION_LABEL[game.termination as Termination] ?? game.termination}.
+            </p>
+            {game.pgn && (
+              <Button
+                variant="ghost"
+                size="sm"
+                data-testid="copy-pgn"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(game.pgn);
+                    toast("PGN copied. Paste it into any chess app.");
+                  } catch {
+                    toast("Couldn’t copy on this device.");
+                  }
+                }}
+              >
+                Copy PGN
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

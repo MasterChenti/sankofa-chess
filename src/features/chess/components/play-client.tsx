@@ -11,7 +11,7 @@ import { materialSummary, PlayerStrip } from "@/components/chess/player-strip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getEngine } from "@/lib/chess/engine";
+import { getEngine, getFallbackEngine, resetEngine } from "@/lib/chess/engine";
 import { lineScore } from "@/lib/chess/engine/types";
 import { PERSONA_LIST, PERSONAS, TIME_CONTROLS, type PersonaId, type TimeControlId } from "@/lib/chess/personas";
 import { naturalEnd, replay, TERMINATION_LABEL, type GameResult, type Termination } from "@/lib/chess/rules";
@@ -25,6 +25,8 @@ type Mode = "ai" | "local";
 type Setup = { mode: Mode; personaId: PersonaId; color: "w" | "b" | "random"; timeControl: TimeControlId };
 type End = { result: GameResult; termination: Termination; loser?: "w" | "b" };
 type Live = {
+  /** Unique per game, so a late engine reply can never land in a newer game. */
+  id: string;
   mode: Mode;
   personaId: PersonaId;
   userColor: "w" | "b";
@@ -43,7 +45,8 @@ function loadLive(): Live | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const g = JSON.parse(raw) as Live;
-    return g && Array.isArray(g.moves) && !g.end ? g : null;
+    if (!g || !Array.isArray(g.moves) || g.end) return null;
+    return { ...g, id: g.id ?? newGameId() };
   } catch {
     return null;
   }
@@ -55,6 +58,10 @@ function saveLive(g: Live | null) {
   } catch {
     /* storage unavailable — the game still works */
   }
+}
+
+function newGameId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 /** True when an unfinished game against the computer is saved on this device. */
@@ -81,6 +88,11 @@ export function PlayClient({
   const [hydrated, setHydrated] = React.useState(false);
   const [engineState, setEngineState] = React.useState<"loading" | "ready" | "fallback">("loading");
   const [thinking, setThinking] = React.useState(false);
+  /** Set when the engine failed to produce a move; the game waits for the player to choose what to do. */
+  const [engineError, setEngineError] = React.useState<string | null>(null);
+  const [retryKey, setRetryKey] = React.useState(0);
+  /** The player chose the lightweight engine after Stockfish failed. */
+  const [useLight, setUseLight] = React.useState(false);
   const [flipped, setFlipped] = React.useState(false);
   const [viewPly, setViewPly] = React.useState<number | null>(null);
   const [confirmResign, setConfirmResign] = React.useState(false);
@@ -123,21 +135,21 @@ export function PlayClient({
   }, []);
 
   React.useEffect(() => {
-    if (!live || live.end || live.clocks.w == null || live.turnStartedAt == null) return;
+    if (!live || live.end || live.clocks.w == null || live.turnStartedAt == null || engineError) return;
     const id = window.setInterval(() => {
       setTick((t) => t + 1);
       const left = remaining(turn);
       if (left != null && left <= 0) endGame({ result: turn === "w" ? "0-1" : "1-0", termination: "timeout", loser: turn });
     }, 100);
     return () => window.clearInterval(id);
-  }, [live, turn, remaining, endGame]);
+  }, [live, turn, remaining, endGame, engineError]);
 
   // ----- moves -----
-  /** Appends a move. `expectedPly` guards against stale engine replies. */
-  const applyMove = React.useCallback((uci: string, expectedPly?: number) => {
+  /** Appends a move. `expected` guards against stale engine replies (other game, or position already moved on). */
+  const applyMove = React.useCallback((uci: string, expected?: { gameId: string; ply: number }) => {
     setLive((g) => {
       if (!g || g.end) return g;
-      if (expectedPly != null && g.moves.length !== expectedPly) return g;
+      if (expected && (g.id !== expected.gameId || g.moves.length !== expected.ply)) return g;
       const board = replay(g.moves);
       if (!board) return g;
       const mover = board.turn() as "w" | "b";
@@ -169,35 +181,59 @@ export function PlayClient({
     [live, turn, applyMove],
   );
 
-  // Computer's turn
+  // Computer's turn: request → (retry once with a fresh engine) → validate → apply, or stop with a visible error.
   React.useEffect(() => {
-    if (!isAiTurn || !live || thinking) return;
+    if (!isAiTurn || !live) return;
     let cancelled = false;
-    const movesAtStart = live.moves.length;
+    const expected = { gameId: live.id, ply: live.moves.length };
+    const position = fen;
+    const opponent = persona;
     setThinking(true);
+    setEngineError(null);
     (async () => {
       const started = Date.now();
-      const engine = await getEngine();
-      const uci = await engine.chooseMove(fen, persona);
-      const minThink = 450 + Math.random() * 500;
+      let uci: string | null = null;
+      if (useLight) {
+        uci = await getFallbackEngine().chooseMove(position, opponent);
+      } else {
+        let lastError: unknown = null;
+        for (let attempt = 0; attempt < 2 && !cancelled; attempt++) {
+          try {
+            const engine = await getEngine();
+            if (!cancelled) setEngineState(engine.name.startsWith("Stockfish") ? "ready" : "fallback");
+            uci = await engine.chooseMove(position, opponent);
+            lastError = null;
+            break;
+          } catch (e) {
+            lastError = e;
+            resetEngine(); // a dead or stuck worker is replaced by a fresh one
+          }
+        }
+        if (lastError) throw lastError;
+      }
+      // A short, human pause so instant replies don't feel robotic.
+      const minThink = 350 + Math.random() * 400;
       const wait = Math.max(0, minThink - (Date.now() - started));
       await new Promise((r) => setTimeout(r, wait));
-      if (cancelled) return;
-      setThinking(false);
-      if (!uci) return;
-      applyMove(uci, movesAtStart);
-    })().catch(() => {
-      if (!cancelled) {
-        setThinking(false);
-        toast("The engine stumbled. Your move stays — try again in a moment.");
-      }
-    });
+      if (cancelled || !uci) return;
+      applyMove(uci, expected);
+    })()
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        console.error("Engine move failed", e);
+        setEngineError(e instanceof Error && e.message ? e.message : "The chess engine stopped responding.");
+        track("engine_error", { message: e instanceof Error ? e.message : "unknown" });
+      })
+      .finally(() => {
+        if (!cancelled) setThinking(false);
+      });
     return () => {
       cancelled = true;
       setThinking(false);
     };
+    // fen/persona are derived from live.id + moves; listing them would restart the search on every clock tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAiTurn, live?.moves.length]);
+  }, [isAiTurn, live?.id, live?.moves.length, retryKey, useLight]);
 
   // Persist the finished game once.
   React.useEffect(() => {
@@ -226,6 +262,7 @@ export function PlayClient({
     const userColor = setup.color === "random" ? (Math.random() < 0.5 ? "w" : "b") : setup.color;
     const tc = TIME_CONTROLS[setup.timeControl];
     const g: Live = {
+      id: newGameId(),
       mode: setup.mode,
       personaId: setup.personaId,
       userColor,
@@ -237,6 +274,8 @@ export function PlayClient({
     };
     setSaved(null);
     setViewPly(null);
+    setEngineError(null);
+    setUseLight(false);
     setFlipped(setup.mode === "ai" && userColor === "b");
     setLive(g);
     track("game_started", { mode: setup.mode, persona: setup.personaId, tc: setup.timeControl });
@@ -255,9 +294,14 @@ export function PlayClient({
       endGame({ result: "1/2-1/2", termination: "agreement" });
       return;
     }
-    const engine = await getEngine();
-    const a = await engine.analyse(fen, { depth: 10, movetimeMs: 400 });
-    const stm = lineScore(a.lines[0]);
+    let stm: number;
+    try {
+      const engine = await getEngine();
+      stm = lineScore((await engine.analyse(fen, { depth: 10, movetimeMs: 400 })).lines[0]);
+    } catch {
+      toast(`${persona.name} can’t answer right now. Try again in a moment.`);
+      return;
+    }
     const aiScore = turn === live.userColor ? -stm : stm;
     const accept = aiScore <= -150 || (live.moves.length >= 60 && Math.abs(aiScore) < 40);
     if (accept) {
@@ -271,6 +315,7 @@ export function PlayClient({
   function newGame() {
     setLive(null);
     setSaved(null);
+    setEngineError(null);
     saveLive(null);
   }
 
@@ -318,12 +363,14 @@ export function PlayClient({
     ? live.end.result === "1/2-1/2"
       ? `Draw by ${TERMINATION_LABEL[live.end.termination]}.`
       : `${live.end.result === "1-0" ? "White" : "Black"} wins by ${TERMINATION_LABEL[live.end.termination]}.`
-    : thinking
+    : engineError
+      ? `${persona.name} couldn’t move.`
+      : thinking
       ? `${persona.name} is thinking…`
       : game?.inCheck()
         ? "Check."
         : live.mode === "local"
-          ? `${turn === "w" ? "White" : "Black"} to move.`
+          ? `${turn === "w" ? "White" : "Black"} to move. Pass the phone.`
           : turn === live.userColor
             ? "Your move."
             : `${persona.name} to move.`;
@@ -382,9 +429,41 @@ export function PlayClient({
             </Button>
           </div>
         )}
-        {engineState === "fallback" && live.mode === "ai" && (
-          <p className="text-xs text-muted-foreground">Stockfish couldn’t start on this device, so a lighter engine is playing.</p>
+        {engineError && live.mode === "ai" && !live.end && (
+          <div className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-destructive/40 bg-destructive/10 p-3" role="alert" data-testid="engine-error">
+            <p className="text-sm">
+              <span className="font-semibold">{engineError}</span> Your game is safe and the clock is paused.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => setRetryKey((k) => k + 1)} data-testid="engine-retry">
+                <RotateCcw /> Try again
+              </Button>
+              {!useLight && (
+                <Button size="sm" variant="secondary" onClick={() => setUseLight(true)}>
+                  Continue with the lighter engine
+                </Button>
+              )}
+            </div>
+          </div>
         )}
+        {live.mode === "ai" && (engineState === "fallback" || useLight) && (
+          <p className="text-xs text-muted-foreground" data-testid="engine-fallback-note">
+            Stockfish isn’t available on this device right now, so {persona.name} is played by a lighter, weaker engine.{" "}
+            <button
+              type="button"
+              className="font-semibold text-accent-foreground underline"
+              onClick={() => {
+                resetEngine();
+                setUseLight(false);
+                setEngineState("loading");
+                void getEngine().then((e) => setEngineState(e.name.startsWith("Stockfish") ? "ready" : "fallback"));
+              }}
+            >
+              Try Stockfish again
+            </button>
+          </p>
+        )}
+        {live.mode === "local" && <p className="text-xs text-muted-foreground">Pass &amp; play: two people share this phone. There’s no computer in this game.</p>}
       </aside>
 
       <Dialog open={confirmResign} onOpenChange={setConfirmResign}>
@@ -528,7 +607,7 @@ function SetupPanel({
       </div>
       <div className="order-1 flex flex-col gap-6 lg:order-2">
         <fieldset className="flex flex-col gap-2.5">
-          <legend className="mb-2.5 text-sm font-semibold">Opponent</legend>
+          <legend className="mb-2.5 text-sm font-semibold">Computer opponent</legend>
           {PERSONA_LIST.map((p) => (
             <button
               key={p.id}
@@ -545,6 +624,10 @@ function SetupPanel({
               </span>
             </button>
           ))}
+        </fieldset>
+
+        <fieldset className="flex flex-col gap-2.5">
+          <legend className="mb-2.5 text-sm font-semibold">Or no computer</legend>
           <button
             type="button"
             aria-pressed={setup.mode === "local"}
@@ -552,7 +635,7 @@ function SetupPanel({
             onClick={() => onChange({ ...setup, mode: "local" })}
           >
             <span className="font-semibold">Pass &amp; play</span>
-            <span className="text-sm text-muted-foreground">Two players, one device. Not rated.</span>
+            <span className="text-sm text-muted-foreground">Two people take turns on this phone. You move both sides. Not rated.</span>
           </button>
         </fieldset>
 

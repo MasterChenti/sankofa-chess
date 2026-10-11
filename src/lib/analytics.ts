@@ -11,7 +11,8 @@ export type AnalyticsEvent =
   | "puzzle_completed"
   | "lesson_started"
   | "lesson_completed"
-  | "challenge_completed";
+  | "challenge_completed"
+  | "engine_error";
 
 export function track(event: AnalyticsEvent, props: Record<string, string | number | boolean> = {}) {
   if (process.env.NODE_ENV === "development") {

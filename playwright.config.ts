@@ -18,6 +18,8 @@ export default defineConfig({
   },
   projects: [
     { name: "mobile", use: { ...devices["Pixel 7"] } },
+    // Safari's engine (WebKit) with an iPhone profile, for the computer opponent. Not a real iPhone: see README.
+    { name: "iphone-webkit", use: { ...devices["iPhone 13"] }, testMatch: /computer\.spec\.ts/ },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

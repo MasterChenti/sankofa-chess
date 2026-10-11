@@ -18,12 +18,30 @@ export type EngineAnalysis = {
   lines: EngineLine[];
 };
 
+export type SearchOptions = { depth?: number; movetimeMs?: number; multiPv?: number; skill?: number; limitElo?: number };
+
 export interface ChessEngine {
   readonly name: string;
+  /** True when the engine can no longer answer and must be replaced. */
+  readonly dead?: boolean;
   ready(): Promise<void>;
-  analyse(fen: string, opts?: { depth?: number; movetimeMs?: number; multiPv?: number }): Promise<EngineAnalysis>;
+  analyse(fen: string, opts?: SearchOptions): Promise<EngineAnalysis>;
+  /** Resolves with a legal UCI move (null only when there is no legal move), or rejects with an EngineError. */
   chooseMove(fen: string, persona: Persona): Promise<string | null>;
   dispose(): void;
+}
+
+export type EngineErrorKind = "load" | "timeout" | "crashed" | "invalid";
+
+/** Every engine failure is explicit, so the game can recover instead of waiting forever. */
+export class EngineError extends Error {
+  constructor(
+    readonly kind: EngineErrorKind,
+    message: string,
+  ) {
+    super(message);
+    this.name = "EngineError";
+  }
 }
 
 export const MATE_SCORE = 10_000;

@@ -80,7 +80,7 @@ jobs:
 
       - name: Install Playwright browser
         if: steps.build.outcome == 'success' && steps.supabase.outcome == 'success'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: End-to-end tests
         id: e2e
