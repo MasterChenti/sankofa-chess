@@ -46,6 +46,8 @@ test("Test A + B: the computer answers every move by itself for ten plies", asyn
   await expect(board(page)).toHaveAttribute("data-fen", / w \S+ \S+ \d+ 6$/, { timeout: 30_000 });
   await expect(page.getByRole("list", { name: "Moves" }).getByRole("listitem")).toHaveCount(5);
   await expect(page.getByTestId("engine-error")).toHaveCount(0);
+  // Every reply came from Stockfish itself, not the lighter backup engine (this is what proves the WASM worker runs in WebKit).
+  await expect(page.getByTestId("engine-fallback-note")).toHaveCount(0);
   await page.screenshot({ path: `test-results/screens/20-computer-ten-plies-${test.info().project.name}.png`, fullPage: true });
 });
 
