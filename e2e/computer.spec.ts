@@ -86,7 +86,7 @@ test("Test E: checkmate ends the game and the computer makes no further move", a
   const finalFen = await fenOf(page);
   await page.waitForTimeout(2500);
   expect(await fenOf(page)).toBe(finalFen);
-  await expect(page.getByRole("list", { name: "Moves" })).toContainText("Qxf7#");
+  expect(new Chess(finalFen).isCheckmate()).toBe(true);
   await expect(page.getByTestId("result-dialog")).toContainText("You won.", { timeout: 20_000 });
 });
 
