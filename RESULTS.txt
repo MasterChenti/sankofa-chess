@@ -1,0 +1,10 @@
+commit=662a8f28f04b143f1edcd3340185adf134ae2f04
+install=cancelled
+lint=skipped
+typecheck=skipped
+unit=skipped
+seed=skipped
+supabase=skipped
+build=skipped
+e2e=skipped
+
