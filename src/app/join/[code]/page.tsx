@@ -6,10 +6,18 @@ import { Button } from "@/components/ui/button";
 import { JoinButton } from "@/features/online/components/join-button";
 import { getSession } from "@/features/auth/session";
 import { getInvite } from "@/features/online/invite";
+import { logPageEvent } from "@/lib/analytics-server";
 import { LIVE_MODES } from "@/lib/chess/live";
 import { countryFlag, countryName } from "@/config/countries";
 
-export const metadata: Metadata = { title: "You’ve been challenged" };
+export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
+  const { code } = await params;
+  const invite = await getInvite(code);
+  const name = invite?.host?.display_name;
+  const title = name ? `${name} challenges you to a game of chess` : "You’ve been challenged";
+  const description = invite ? `${LIVE_MODES[invite.game.mode].label} · ${LIVE_MODES[invite.game.mode].detail}. Tap to accept on Sankofa Chess.` : "Sankofa Chess";
+  return { title, description, openGraph: { title, description, type: "website" }, robots: { index: false } };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -25,6 +33,7 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   const h = invite?.host;
   const game = invite?.game;
   const isHost = Boolean(user && game?.created_by === user.id);
+  if (game && !isHost) await logPageEvent("invite_opened", { userId: user?.id ?? null, props: { signedIn: Boolean(user) } });
 
   return (
     <div className="min-h-dvh">

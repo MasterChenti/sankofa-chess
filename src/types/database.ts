@@ -39,6 +39,8 @@ export type Profile = {
   days_sharpened: number;
   online_games: number;
   rest_week: string | null;
+  invited_by: string | null;
+  signup_ref: "invite" | "card" | "direct" | null;
   is_demo: boolean;
   onboarded_at: string | null;
   created_at: string;
@@ -137,6 +139,7 @@ export type DailySession = {
   reflection: string | null;
   reflected_at: string | null;
   completed_at: string | null;
+  share_code: string | null;
 };
 
 export type LiveMode = "blitz" | "rapid" | "daily";

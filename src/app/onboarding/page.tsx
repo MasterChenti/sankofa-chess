@@ -25,7 +25,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       </header>
       <main className="mx-auto w-full max-w-[520px] px-4 pb-20 pt-8 sm:pt-14">
         {profile ? (
-          <OnboardingFlow name={profile.display_name} initialLevel={profile.chess_level} next={next} />
+          <OnboardingFlow name={profile.display_name} initialLevel={profile.chess_level} next={next} needsCountry={profile.country === "OT"} />
         ) : (
           <p className="text-muted-foreground">We’re setting up your profile. Refresh in a moment.</p>
         )}

@@ -4,7 +4,9 @@ import * as React from "react";
 import { ArrowLeft } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
-import { FieldError } from "@/components/ui/label";
+import { FieldError, Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/input";
+import { COUNTRIES } from "@/config/countries";
 import { completeOnboarding } from "@/features/auth/actions";
 import type { ChessLevel, Goal } from "@/types/database";
 import { cn } from "@/lib/utils";
@@ -22,7 +24,18 @@ const GOALS: [Goal, string, string][] = [
   ["fun", "Play for fun", "Good games, no pressure."],
 ];
 
-export function OnboardingFlow({ name, initialLevel, next }: { name: string; initialLevel: ChessLevel; next?: string }) {
+export function OnboardingFlow({
+  name,
+  initialLevel,
+  next,
+  needsCountry = false,
+}: {
+  name: string;
+  initialLevel: ChessLevel;
+  next?: string;
+  needsCountry?: boolean;
+}) {
+  const [country, setCountry] = React.useState("");
   const [step, setStep] = React.useState(0);
   const [level, setLevel] = React.useState<ChessLevel>(initialLevel);
   const [goal, setGoal] = React.useState<Goal | null>(null);
@@ -34,7 +47,7 @@ export function OnboardingFlow({ name, initialLevel, next }: { name: string; ini
     setError(null);
     start(async () => {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const res = await completeOnboarding({ chessLevel: level, goal, timezone: tz }, next);
+      const res = await completeOnboarding({ chessLevel: level, goal, timezone: tz, country: needsCountry && country ? country : undefined }, next);
       if (res?.message) setError(res.message);
     });
   }
@@ -69,7 +82,20 @@ export function OnboardingFlow({ name, initialLevel, next }: { name: string; ini
           <LogoMark className="size-16 text-foreground" />
           <h1 className="text-[2.6rem] font-semibold leading-[1.05]">Welcome to Sankofa Chess, {name}.</h1>
           <p className="text-lg text-muted-foreground">Every game you play here becomes a lesson. Two quick questions and your training plan is ready.</p>
-          <Button size="lg" onClick={() => setStep(1)} data-testid="onboarding-next">
+          {needsCountry && (
+            <div className="flex w-full flex-col gap-1.5">
+              <Label htmlFor="country">Where are you playing from?</Label>
+              <Select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
+                <option value="">Choose your country</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+          <Button size="lg" onClick={() => setStep(1)} disabled={needsCountry && !country} data-testid="onboarding-next">
             Let’s go
           </Button>
         </div>
@@ -124,8 +150,8 @@ export function OnboardingFlow({ name, initialLevel, next }: { name: string; ini
           <h1 className="text-3xl font-semibold">Your plan is ready.</h1>
           <p className="text-lg text-muted-foreground">{plan}</p>
           <ul className="flex flex-col gap-2 text-sm">
-            <li>· A daily mission: solve 3 puzzles</li>
-            <li>· Your first lesson, picked for your level</li>
+            <li>· A 10-minute daily session: a position, a story, a question</li>
+            <li>· Real opponents when you want a game</li>
             <li>· A personal review after every game</li>
           </ul>
           {error && <FieldError message={error} />}
@@ -134,7 +160,7 @@ export function OnboardingFlow({ name, initialLevel, next }: { name: string; ini
               <ArrowLeft /> Back
             </Button>
             <Button size="lg" onClick={finish} disabled={pending} data-testid="onboarding-finish">
-              {pending ? "Setting up…" : "Open my dashboard"}
+              {pending ? "Setting up…" : next ? "Continue" : "Start my first day"}
             </Button>
           </div>
         </div>

@@ -43,6 +43,28 @@ test("today: the finite daily session from first move to “you’ve sharpened y
   await expect(page.getByTestId("session-done")).toContainText("You’ve sharpened your mind for today.");
   await page.screenshot({ path: "test-results/screens/14-done.png", fullPage: true });
 
+  // Share today's dilemma: a Status-sized card and a public page friends can answer without an account.
+  await page.getByTestId("share-day").click();
+  await expect(page.getByTestId("share-ready")).toBeVisible({ timeout: 20_000 });
+  const cardUrl = (await page.getByTestId("share-link").getAttribute("href"))!;
+  const cardPath = new URL(cardUrl).pathname;
+  expect(cardPath).toMatch(/^\/d\/[a-z2-9]{8}$/);
+  const status = await page.request.get(`${cardPath}/status`);
+  expect(status.status()).toBe(200);
+  expect(status.headers()["content-type"]).toContain("image/png");
+  await page.screenshot({ path: "test-results/screens/18-share-ready.png", fullPage: true });
+
+  const friend = await (await page.context().browser()!.newContext()).newPage();
+  await friend.goto(cardPath);
+  await expect(friend.getByTestId("shared-card")).toContainText(`${user.name}’s dilemma today`);
+  const ogImage = await friend.locator('meta[property="og:image"]').first().getAttribute("content");
+  expect(ogImage).toBeTruthy();
+  expect((await friend.request.get(new URL(ogImage!).pathname + new URL(ogImage!).search)).status()).toBe(200);
+  await friend.locator('[data-testid^="dilemma-option-"]').first().click();
+  await expect(friend.getByTestId("dilemma-result")).toBeVisible();
+  await expect(friend.getByTestId("card-signup")).toBeVisible();
+  await friend.screenshot({ path: "test-results/screens/19-friend-answer.png", fullPage: true });
+
   await page.goto("/app/today");
   await expect(page.getByTestId("today-done")).toBeVisible();
   await expect(page.getByTestId("today-step-reflect")).toHaveAttribute("data-done", "true");

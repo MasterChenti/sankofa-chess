@@ -87,6 +87,12 @@ test("a friend without an account opens the invite, signs up and lands straight 
 
   // Logged out: the invite page shows who is challenging, without asking to log in first.
   await b.goto(path);
+  // WhatsApp shows a rich preview: the page names the challenger and has a preview image.
+  await expect(b.locator('meta[property="og:title"]')).toHaveAttribute("content", `${host.name} challenges you to a game of chess`);
+  const og = (await b.locator('meta[property="og:image"]').first().getAttribute("content"))!;
+  const ogRes = await b.request.get(new URL(og).pathname + new URL(og).search);
+  expect(ogRes.status()).toBe(200);
+  expect(ogRes.headers()["content-type"]).toContain("image/png");
   await expect(b.getByRole("heading", { level: 1 })).toHaveText(`${host.name} challenges you.`);
   await b.screenshot({ path: "test-results/screens/17-invite-logged-out.png", fullPage: true });
   await b.getByTestId("invite-signup").click();

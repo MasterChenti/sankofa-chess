@@ -13,6 +13,7 @@ import { StoryExperience } from "@/features/discover/components/story-experience
 import { ThoughtCard } from "@/features/think/components/thought-card";
 import { ReflectionForm } from "@/features/today/components/reflection-form";
 import { OnlineCount } from "@/features/online/components/online-count";
+import { ShareDay } from "@/features/share/components/share-day";
 import { STYLE_LABEL } from "@/features/think/styles";
 import { cn } from "@/lib/utils";
 
@@ -204,6 +205,7 @@ export default async function MorningPage({ searchParams }: { searchParams: Prom
             </Button>
           </div>
         )}
+        {status.remember && <ShareDay />}
         <Button asChild variant="secondary" className="w-fit">
           <Link href="/app/today">Back to Today</Link>
         </Button>

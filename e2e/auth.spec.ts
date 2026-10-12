@@ -5,6 +5,8 @@ test("landing page explains the product and leads to sign-up", async ({ page }) 
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Learn from the past. Master your next move.");
   await expect(page.getByRole("heading", { name: "Why Sankofa?" })).toBeVisible();
+  const og = (await page.locator('meta[property="og:image"]').first().getAttribute("content"))!;
+  expect((await page.request.get(new URL(og).pathname + new URL(og).search)).status()).toBe(200);
   await page.screenshot({ path: "test-results/screens/01-landing.png", fullPage: true });
   await page.getByRole("link", { name: "Join", exact: true }).click();
   await expect(page).toHaveURL(/\/signup/);

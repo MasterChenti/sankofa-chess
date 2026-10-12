@@ -29,6 +29,11 @@ export const onboardingSchema = z.object({
   chessLevel: chessLevelSchema,
   goal: z.enum(["basics", "tactics", "strategy", "tournaments", "fun"], { error: "Choose what you want to improve." }),
   timezone: z.string().max(64).optional(),
+  // Asked only of players who signed up with Google (no country yet).
+  country: z
+    .string()
+    .refine((c) => COUNTRY_CODES.includes(c), "Choose your country.")
+    .optional(),
 });
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 

@@ -13,7 +13,10 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
+  ),
   title: { default: "Sankofa Chess — Learn from the past. Master your next move.", template: "%s · Sankofa Chess" },
   description:
     "A strategic learning platform rooted in African heritage, with chess at its core. Play, solve puzzles, learn and review every game with a coach.",
@@ -25,8 +28,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Sankofa Chess",
-    description: "Learn from the past. Master your next move.",
+    description: "10 minutes a day to sharpen your mind: a chess position, a true story from African history, a strategic question. Play real people.",
     type: "website",
+    siteName: "Sankofa Chess",
   },
 };
 

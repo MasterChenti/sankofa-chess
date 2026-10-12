@@ -9,6 +9,8 @@ import { loginSchema, onboardingSchema, profileSchema, safeNext, signupSchema } 
 import { STARTING_RATING } from "@/features/progress/rules";
 import { safeTimeZone } from "@/lib/utils/dates";
 import { track } from "@/lib/analytics";
+import { logEvent } from "@/lib/analytics-server";
+import { attributionFor } from "@/features/share/attribution";
 
 export type ActionState = {
   ok?: boolean;
@@ -133,13 +135,21 @@ export async function completeOnboarding(input: unknown, next?: string): Promise
   if (!user) redirect("/login");
 
   const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("games_played, onboarded_at").eq("id", user.id).single();
+  const { data: profile } = await admin.from("profiles").select("games_played, onboarded_at, signup_ref").eq("id", user.id).single();
   const patch: Record<string, unknown> = {
     chess_level: parsed.data.chessLevel,
     goal: parsed.data.goal,
     timezone: safeTimeZone(parsed.data.timezone),
     onboarded_at: new Date().toISOString(),
   };
+  if (parsed.data.country) patch.country = parsed.data.country;
+  // Where did this player come from? (A friend's invite, a shared daily card, or directly.)
+  if (profile && !profile.signup_ref) {
+    const { ref, inviterId } = await attributionFor(admin, next);
+    patch.signup_ref = ref;
+    if (inviterId && inviterId !== user.id) patch.invited_by = inviterId;
+    if (ref !== "direct") await logEvent("signup_attributed", { userId: user.id, props: { ref } });
+  }
   // Starting rating follows the chosen level until the first rated game.
   if (profile && profile.games_played === 0) {
     patch.rating = STARTING_RATING[parsed.data.chessLevel];

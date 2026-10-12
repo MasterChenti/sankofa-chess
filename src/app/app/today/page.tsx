@@ -10,6 +10,7 @@ import { STEPS, isDayComplete, minutesLeft, nextStep, type StepKey } from "@/fea
 import { greeting, localHour } from "@/features/today/copy";
 import { getMyLiveGames } from "@/features/online/queries";
 import { OnlineCount } from "@/features/online/components/online-count";
+import { ShareDay } from "@/features/share/components/share-day";
 import { displayStreak } from "@/features/progress/rules";
 import { liveTurnLabel } from "@/lib/chess/live";
 import { SANKOFA_DAILY } from "@/config/sankofa-daily";
@@ -74,6 +75,7 @@ export default async function TodayPage() {
               {!status.play && " If you have time, a game with a real person is the best way to use what you learned."}
             </p>
             {session.reflection && <p className="font-display text-lg italic">“{session.reflection}”</p>}
+            <ShareDay compact />
           </div>
         ) : (
           <div className="flex flex-col gap-4">
